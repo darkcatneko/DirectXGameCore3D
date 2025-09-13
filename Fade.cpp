@@ -27,9 +27,7 @@ void Fade_Initialize()
 	g_Alpha = 0.0f;
 	g_State = FADE_STATE_NONE;
 	g_FadeTexId = Texture_Load(L"white.png");
-	g_FadeLoseId = Texture_Load(L"GAMEOVER.png");
 	g_FadeTex_Data[0] = g_FadeTexId;
-	g_FadeTex_Data[1] = g_FadeLoseId;
 }
 
 void Fade_Finalize()
@@ -55,7 +53,7 @@ void Fade_Draw()
 	Sprite_Draw_UV_UI(g_FadeTex_Data[NowFadeTex], 0.0f, 0.0f, Direct3D_GetBackBufferWidth(), Direct3D_GetBackBufferHeight(), 1.0f, 1.0f, 0, 0, 1.0f, color);
 }
 
-void Fade_Start(double time, bool isFadeOut, DirectX::XMFLOAT3 color,int fadeTex)
+void Fade_Start(double time, bool isFadeOut, DirectX::XMFLOAT3 color, int fadeTex)
 {
 	g_FadeStartTime = g_AccumulatedTime;
 	g_FadeTime = time;

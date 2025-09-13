@@ -3,30 +3,26 @@
 #include "GameWindow.h" 
 #define WIND32_LEAN_AND_MEAN
 #include "direct3d.h"
-#include "sprite.h"
-#include"shader.h"
-#include "Texture.h"
 #include "vector"
 #include "debug_text.h"
 #include <sstream>
-#include "system_timer.h"
 #include "sprite_anim.h"
-#include "polygon.h"
 #include "keyboard.h"
-#include "mouse.h"
-#include "Key_Logger.h"
 #include "Camera.h"
 #include "Audio.h"
-#include "Fade.h"
 #include "Scene3D.h"
 #include "Collision.h"
-#include "MouseRenderer.h"
 #include "UIInteraction.h"
 #include "BattleBossController.h"
 #include "GameSetting.h"
-#include "Shader3D.h"
-#include "Cube.h"
-#include "Grid.h"
+#include "system_timer.h"
+#include "Scene3D.h"
+#include "mouse.h"
+#include "Key_Logger.h"
+#include "Fade.h"
+#include "sprite.h"
+#include "NekoTool.h"
+
 using namespace DirectX;
 
 XMFLOAT2 scale;
@@ -40,20 +36,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	HWND hWnd = GameWindow_Create(hInstance);
 	Direct3D_Initialize(hWnd);
 
-	SystemTimer_Initialize();
-	KeyLogger_Initialize();
-	Mouse_Initialize(hWnd);
-	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-
-	Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	Polygon_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-
-	Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	Fade_Initialize();
-	MouseRenderer_Initialize();
+	Scene3D_Initialize(hWnd);
 
 	hal::DebugText dt(Direct3D_GetDevice(), Direct3D_GetContext(),
 		L"consolab_ascii_512.png",
@@ -110,7 +93,6 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 			if (elapsed_time >= 1.0 / 60.0)
 			{
 				exec_last_time = current_time;
-
 #pragma region 0627Mouse
 				KeyLogger_Update();
 				MouseLogger_Update();
@@ -130,12 +112,10 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 				//////////////////////    DRAW      //////////////////////
 				Scene3D_Draw();
-				Cube_Draw();
-				Grid_Draw();
 				Fade_Draw();
 #if defined(DEBUG)||defined(_DEBUG)
 				std::stringstream ss;
-				ss << "FPS: " << CameraPos_X << "  " << CameraPos_Y << "MOUSE: " << mouse_state.x << " " << mouse_state.y << " bullet:" << GetBulletCount(0) << "/" << GetBulletCount(1) << "/" << GetBulletCount(2);
+				ss << "FPS: " << fps << "MOUSE: " << mouse_state.x << " " << mouse_state.y << " bullet:" << GetBulletCount(0) << "/" << GetBulletCount(1) << "/" << GetBulletCount(2);
 				dt.SetText(ss.str().c_str());
 				//dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
 
@@ -158,16 +138,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 		}
 	}
-	Texture_Finalize();
-	Sprite_Finalize();
-	Cube_Finitialize();
-	Polygon_Finalize();
-	Mouse_Finalize();
-	Shader_Finalize();
-	Direct3D_Finalize();
-	UninitAudio();
-	SpriteAnim_Finitialize();
-	Collision_Debug_Finitialize();
+	Scene3D_Finalize();
+
 	return (int)msg.wParam;
 }
 //Window Procedure

@@ -9,9 +9,9 @@ using namespace DirectX;
 #pragma region 宣告
 static constexpr int GRID_H_COUNT = 10;
 static constexpr int GRID_V_COUNT = 10;
-static constexpr int GRID_H_LINE_COUNT = GRID_H_COUNT+1;
+static constexpr int GRID_H_LINE_COUNT = GRID_H_COUNT + 1;
 static constexpr int GRID_V_LINE_COUNT = GRID_V_COUNT + 1;
-static constexpr int NUM_VERTEX = GRID_H_LINE_COUNT*2+ GRID_V_LINE_COUNT * 2; // 頂点数
+static constexpr int NUM_VERTEX = GRID_H_LINE_COUNT * 2 + GRID_V_LINE_COUNT * 2; // 頂点数
 
 
 static ID3D11Buffer* g_pVertexBuffer = nullptr; // 頂点バッファ
@@ -57,16 +57,16 @@ void Grid_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	D3D11_SUBRESOURCE_DATA sd{};
 	sd.pSysMem = g_GridVertex;
 	float x = -5.0f;
-	for (int i = 0; i < GRID_H_LINE_COUNT *2 ; i+=2)
+	for (int i = 0; i < GRID_H_LINE_COUNT * 2; i += 2)
 	{
-		g_GridVertex[i  ] = { {x,0.0f, 5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
-		g_GridVertex[i+1] = { {x,0.0f,-5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i] = { {x,0.0f, 5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i + 1] = { {x,0.0f,-5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
 		x += 1;
 	}
 	float z = -5.0f;
-	for (int i = GRID_V_LINE_COUNT *2; i < NUM_VERTEX; i += 2)
+	for (int i = GRID_V_LINE_COUNT * 2; i < NUM_VERTEX; i += 2)
 	{
-		g_GridVertex[i    ] = { { 5.0f,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i] = { { 5.0f,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
 		g_GridVertex[i + 1] = { {-5.0f,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
 		z += 1;
 	}
@@ -93,23 +93,6 @@ void Grid_Draw()
 	//world matrix
 	XMMATRIX mtxWorld = XMMatrixIdentity();
 	Shader3D_SetWorldMatrix(mtxWorld);
-
-	//view matrix
-	XMMATRIX mtxView = XMMatrixLookAtLH(
-		{ 2.0f, 2.0f, -5.0f },
-		{ 0.0f, 0.0f, 0.0f },
-		{ 0.0f, 1.0f, 0.0f });
-	Shader3D_SetViewMatrix(mtxView);
-
-	//Perspective array
-	//NearZ一定要大于0 是距离
-	constexpr float fovAngleY = XMConvertToRadians(60.0f);
-	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
-	float nearZ = 0.1f;
-	float farZ = 100.0f;
-	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
-
-	Shader3D_SetProjectionMatrix(mtxPerspective);
 
 	// プリミティブトポロジ設定
 	g_pContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINELIST);

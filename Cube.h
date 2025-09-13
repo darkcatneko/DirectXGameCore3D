@@ -11,6 +11,6 @@
 void Cube_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Cube_Finitialize();
 void Cube_Update(double elapsed_time);
-void Cube_Draw();
+void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos);
 
 #endif

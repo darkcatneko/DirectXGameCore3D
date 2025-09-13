@@ -29,8 +29,8 @@ void MouseRenderer_Draw()
 {
 	Sprite_Draw_UV_UI(g_cursorRenderTexId, g_mouseState.x, g_mouseState.y, 32.0f, 32.0f, 1.0f, 1.0f, 0, 0);
 #if defined(DEBUG)||defined(_DEBUG)
-	UICollision_DebugDraw(MouseRenderer_GetCollision(), { 1.0,1.0,1.0,1.0 });
-	UICollision_DebugDraw(MouseRenderer_GetBoxCollision());
+	//UICollision_DebugDraw(MouseRenderer_GetCollision(), { 1.0,1.0,1.0,1.0 });
+	//UICollision_DebugDraw(MouseRenderer_GetBoxCollision());
 #endif
 }
 

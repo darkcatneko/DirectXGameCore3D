@@ -9,6 +9,7 @@ void Scene3D_Draw();
 
 enum class Scene3D
 {
+	SCENE_INIT,
 	SCENE_TITLE,
 	SCENE_GAME,
 	SCENE_RESULT,
