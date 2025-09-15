@@ -108,7 +108,7 @@ void Cube_Update(double elapsed_time)
 	g_time += elapsed_time;
 
 	g_x = sin(g_time * 4.5);
-	g_rotate = g_time * 3.0f;
+	//g_rotate = g_time * 3.0f;
 	g_scale = g_time * 0.1f;
 }
 

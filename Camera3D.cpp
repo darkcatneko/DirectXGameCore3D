@@ -84,6 +84,7 @@ void Camera3D_Update(double elapsed_time)
 
 		// 3. 建立繞 Y 軸的旋轉 quaternion
 		float angle = XMConvertToRadians(-1.0f); // 每次按下旋轉 1 度，可調
+
 		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), angle);
 
 		// 4. 旋轉方向向量
@@ -97,46 +98,76 @@ void Camera3D_Update(double elapsed_time)
 	}
 	if (KeyLogger_IsPressed(KK_R))
 	{
-		// 1. 轉成向量
+		// 1) 載入
 		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
 		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
 
-		// 2. 計算方向向量 (Aim - Pos)
-		XMVECTOR dir = aimPos - camPos;
+		// 2) forward
+		XMVECTOR fwd = XMVector3Normalize(aimPos - camPos);
 
-		// 3. 建立繞 Y 軸的旋轉 quaternion
-		float angle = XMConvertToRadians(1.0f); // 每次按下旋轉 1 度，可調
-		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(1, 0, 0, 0), angle);
+		// 3) 算 Right = normalize( cross(WorldUp, forward) )
+		//    這樣 Pitch 會以相機自身的右側為軸來抬頭/低頭7
+		const XMVECTOR WORLD_UP = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR right = XMVector3Normalize(XMVector3Cross(WORLD_UP, fwd));
+		
+		// 4) 繞 Right 軸旋轉（上下看）
+		float deg = 1.0f; // 每次按鍵旋轉角度
+		float rad = XMConvertToRadians(deg);
+		XMVECTOR qPitch = XMQuaternionRotationAxis(right, rad);
 
-		// 4. 旋轉方向向量
-		dir = XMVector3Rotate(dir, qRot);
+		// 5) 旋轉 forward
+		XMVECTOR newFwd = XMVector3Normalize(XMVector3Rotate(fwd, qPitch));
 
-		// 5. 新的 Aim = 相機位置 + 旋轉後的方向
-		aimPos = camPos + dir;
+		// （可選）避免翻轉：限制抬頭/低頭過度接近 90°
+		// 若 dot(newFwd, WORLD_UP) 絕對值太大，代表快翻過頭了，就略過本次旋轉
+		float cosLimit = 0.99f; // 越接近 1 限制越嚴
+		float upDot = XMVectorGetX(XMVector3Dot(newFwd, WORLD_UP));
+		if (fabsf(upDot) < cosLimit) {
+			fwd = newFwd;
+		}
 
-		// 6. 存回
+		// 6) 維持原本目標距離
+		float dist = XMVectorGetX(XMVector3Length(aimPos - camPos));
+		aimPos = camPos + fwd * dist;
+
+		// 7) 存回
 		XMStoreFloat3(&Camera3D_AimPos, aimPos);
 	}
 	if (KeyLogger_IsPressed(KK_F))
 	{
-		// 1. 轉成向量
+		// 1) 載入
 		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
 		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
 
-		// 2. 計算方向向量 (Aim - Pos)
-		XMVECTOR dir = aimPos - camPos;
+		// 2) forward
+		XMVECTOR fwd = XMVector3Normalize(aimPos - camPos);
 
-		// 3. 建立繞 Y 軸的旋轉 quaternion
-		float angle = XMConvertToRadians(-1.0f); // 每次按下旋轉 1 度，可調
-		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(1, 0, 0, 0), angle);
+		// 3) 算 Right = normalize( cross(WorldUp, forward) )
+		//    這樣 Pitch 會以相機自身的右側為軸來抬頭/低頭
+		const XMVECTOR WORLD_UP = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR right = XMVector3Normalize(XMVector3Cross(WORLD_UP, fwd));
 
-		// 4. 旋轉方向向量
-		dir = XMVector3Rotate(dir, qRot);
+		// 4) 繞 Right 軸旋轉（上下看）
+		float deg = -1.0f; // 每次按鍵旋轉角度
+		float rad = XMConvertToRadians(deg);
+		XMVECTOR qPitch = XMQuaternionRotationAxis(right, rad);
 
-		// 5. 新的 Aim = 相機位置 + 旋轉後的方向
-		aimPos = camPos + dir;
+		// 5) 旋轉 forward
+		XMVECTOR newFwd = XMVector3Normalize(XMVector3Rotate(fwd, qPitch));
 
-		// 6. 存回
+		// （可選）避免翻轉：限制抬頭/低頭過度接近 90°
+		// 若 dot(newFwd, WORLD_UP) 絕對值太大，代表快翻過頭了，就略過本次旋轉
+		float cosLimit = 0.99f; // 越接近 1 限制越嚴
+		float upDot = XMVectorGetX(XMVector3Dot(newFwd, WORLD_UP));
+		if (fabsf(upDot) < cosLimit) {
+			fwd = newFwd;
+		}
+
+		// 6) 維持原本目標距離
+		float dist = XMVectorGetX(XMVector3Length(aimPos - camPos));
+		aimPos = camPos + fwd * dist;
+
+		// 7) 存回
 		XMStoreFloat3(&Camera3D_AimPos, aimPos);
 	}
 	//view matrix
