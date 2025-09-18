@@ -11,8 +11,12 @@ static bool g_PrevMouseInput_R = false;
 static bool g_PrevMouseInput_L = false;
 static bool g_NowMouseInput_R = false;
 static bool g_NowMouseInput_L = false;
+static float g_MouseScrollerPrevInput = 0;
 static Mouse_Inputstate R_state = NONE;
 static Mouse_Inputstate L_state = NONE;
+//static Mouse_Inputstate Scroller_state = NONE;
+
+static MouseScrollerOutPut g_mouseScrollerOutPut;
 
 void KeyLogger_Initialize()
 {
@@ -69,8 +73,19 @@ void MouseLogger_Update()
 	{
 		L_state = DOWN;
 	}
+	if (g_MouseScrollerPrevInput != g_mouseState.scrollWheelValue)
+	{
+		g_mouseScrollerOutPut.trigger = true;
+		g_mouseScrollerOutPut.value = g_mouseState.scrollWheelValue - g_MouseScrollerPrevInput;
+	}
+	else
+	{
+		g_mouseScrollerOutPut.trigger = false;
+		g_mouseScrollerOutPut.value = 0;
+	}
 	g_PrevMouseInput_L = g_mouseState.leftButton;
 	g_PrevMouseInput_R = g_mouseState.rightButton;
+	g_MouseScrollerPrevInput = g_mouseState.scrollWheelValue;
 }
 
 bool KeyLogger_IsPressed(Keyboard_Keys key)
@@ -87,6 +102,12 @@ bool KeyLogger_IsRelease(Keyboard_Keys key)
 {
 	return Keyboard_IsKeyDown(key, &g_RealeaseState);
 }
+
+MouseScrollerOutPut MouseLogger_IsScroll()
+{
+	return g_mouseScrollerOutPut;
+}
+
 bool MouseLogger_IsDown(int mouseButton)
 {
 	if (mouseButton == 0)

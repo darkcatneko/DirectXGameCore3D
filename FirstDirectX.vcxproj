@@ -170,6 +170,7 @@
     <ClCompile Include="Camera3D.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="EnemyChaser.cpp" />
+    <ClCompile Include="Game3D.cpp" />
     <ClCompile Include="GameSetting.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="particle.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="EnemyChaser.h" />
+    <ClInclude Include="Game3D.h" />
     <ClInclude Include="GameSetting.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="particle.h" />

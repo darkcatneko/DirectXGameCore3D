@@ -7,8 +7,8 @@
 using namespace DirectX;
 
 #pragma region 宣告
-static constexpr int GRID_H_COUNT = 10;
-static constexpr int GRID_V_COUNT = 10;
+static constexpr int GRID_H_COUNT = 100;
+static constexpr int GRID_V_COUNT = 100;
 static constexpr int GRID_H_LINE_COUNT = GRID_H_COUNT + 1;
 static constexpr int GRID_V_LINE_COUNT = GRID_V_COUNT + 1;
 static constexpr int NUM_VERTEX = GRID_H_LINE_COUNT * 2 + GRID_V_LINE_COUNT * 2; // 頂点数
@@ -56,18 +56,18 @@ void Grid_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	D3D11_SUBRESOURCE_DATA sd{};
 	sd.pSysMem = g_GridVertex;
-	float x = -5.0f;
+	float x = -5.0f * 10;
 	for (int i = 0; i < GRID_H_LINE_COUNT * 2; i += 2)
 	{
-		g_GridVertex[i] = { {x,0.0f, 5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
-		g_GridVertex[i + 1] = { {x,0.0f,-5.0f} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i] = { {x,0.0f, 5.0f * 10} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i + 1] = { {x,0.0f,-5.0f * 10} ,{0.0f,1.0f,0.0f,1.0f} };
 		x += 1;
 	}
-	float z = -5.0f;
+	float z = -5.0f * 10;
 	for (int i = GRID_V_LINE_COUNT * 2; i < NUM_VERTEX; i += 2)
 	{
-		g_GridVertex[i] = { { 5.0f,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
-		g_GridVertex[i + 1] = { {-5.0f,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i] = { { 5.0f * 10,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
+		g_GridVertex[i + 1] = { {-5.0f * 10,0.0f,z} ,{0.0f,1.0f,0.0f,1.0f} };
 		z += 1;
 	}
 	g_pDevice->CreateBuffer(&bd, &sd, &g_pVertexBuffer);

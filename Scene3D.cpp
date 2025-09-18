@@ -16,6 +16,9 @@
 #include "Audio.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
+
+static XMFLOAT3 g_cubePosition;
+static XMFLOAT3 g_cubeVelocity;
 void Scene3D_Initialize(HWND& hWnd)
 {
 	switch (g_SceneEnum)
@@ -58,12 +61,25 @@ void Scene3D_Finalize()
 void Scene3D_Update(double time)
 {
 	MouseRenderer_Update(time);
-	Camera3D_Update(time);
+	HAL_Camera_Movement_Update(time);
+	CameraDragUpdate(time);
+	//Camera3D_Update(time);
 	Cube_Update(time);
+
+	/*if (KeyLogger_IsTrigger(KK_SPACE))
+	{
+		g_cubePosition = Camera_GetCameraPos();
+	}
+
+	XMFLOAT3 cube_velocity = Camera_GetFrontVector();
+	XMVECTOR cube_position = XMLoadFloat3(&g_cubePosition);
+	cube_position += XMLoadFloat3(&cube_velocity) * time * 20.0f;
+	XMStoreFloat3(&g_cubePosition, cube_position);*/
 }
 
 void Scene3D_Draw()
 {
+	//Cube_Draw(g_cubePosition);
 	for (int y = 10; y >= 0; y--)
 	{
 		for (int z = y; z >= 0; z--)
