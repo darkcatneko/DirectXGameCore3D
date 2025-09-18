@@ -29,13 +29,13 @@ void Scene3D_Initialize(HWND& hWnd)
 		Mouse_Initialize(hWnd);
 		Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Polygon_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
-		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Fade_Initialize();
 		MouseRenderer_Initialize();
 		Camera3D_Initialize();
