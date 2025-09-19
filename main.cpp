@@ -8,13 +8,9 @@
 #include <sstream>
 #include "sprite_anim.h"
 #include "keyboard.h"
-#include "Camera.h"
 #include "Audio.h"
 #include "Scene3D.h"
 #include "Collision.h"
-#include "UIInteraction.h"
-#include "BattleBossController.h"
-#include "GameSetting.h"
 #include "system_timer.h"
 #include "Scene3D.h"
 #include "mouse.h"
@@ -115,7 +111,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 				Fade_Draw();
 #if defined(DEBUG)||defined(_DEBUG)
 				std::stringstream ss;
-				ss << "FPS: " << fps << "MOUSE: " << mouse_state.scrollWheelValue << " " << mouse_state.y << " bullet:" << GetBulletCount(0) << "/" << GetBulletCount(1) << "/" << GetBulletCount(2);
+				ss << "FPS: " << fps << "MOUSE: " << mouse_state.scrollWheelValue << " " << mouse_state.y;
 				dt.SetText(ss.str().c_str());
 				//dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
 

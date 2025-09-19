@@ -159,133 +159,73 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BattleBossBoomber.cpp" />
-    <ClCompile Include="BattleBossController.cpp" />
-    <ClCompile Include="BattleGround.cpp" />
-    <ClCompile Include="BattleHint.cpp" />
-    <ClCompile Include="BattlePlayer.cpp" />
-    <ClCompile Include="BattlePlayerUpdater.cpp" />
-    <ClCompile Include="BattleSystem.cpp" />
-    <ClCompile Include="BossCleanerController.cpp" />
     <ClCompile Include="Camera3D.cpp" />
-    <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="EnemyChaser.cpp" />
-    <ClCompile Include="Game3D.cpp" />
-    <ClCompile Include="GameSetting.cpp" />
-    <ClCompile Include="Grid.cpp" />
-    <ClCompile Include="particle.cpp" />
-    <ClCompile Include="Scene3D.cpp" />
-    <ClCompile Include="SecondScene.cpp" />
-    <ClCompile Include="Shader3D.cpp" />
-    <ClCompile Include="TriggerCollider.cpp" />
-    <ClCompile Include="Audio.cpp" />
-    <ClCompile Include="Background.cpp" />
-    <ClCompile Include="bullet.cpp" />
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="CollisionGameObject.cpp" />
+    <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="Game3D.cpp" />
+    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="Scene3D.cpp" />
+    <ClCompile Include="Shader3D.cpp" />
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_text.cpp" />
-    <ClCompile Include="DialogueUIManager.cpp" />
     <ClCompile Include="direct3d.cpp" />
-    <ClCompile Include="Effect.cpp" />
-    <ClCompile Include="Enemy.cpp" />
-    <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Fade.cpp" />
-    <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="Key_Logger.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Map.cpp" />
-    <ClCompile Include="MapCollisionInteraction.cpp" />
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="MouseRenderer.cpp" />
     <ClCompile Include="NekoTool.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="PlayerAnimationLoader.cpp" />
-    <ClCompile Include="PlayerUpdater.cpp" />
     <ClCompile Include="polygon.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Score.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sprite_anim.cpp" />
     <ClCompile Include="system_timer.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Title.cpp" />
-    <ClCompile Include="TitleUIDrawer.cpp" />
-    <ClCompile Include="UIInteraction.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h" />
-    <ClInclude Include="Background.h" />
-    <ClInclude Include="BattleBossBoomber.h" />
-    <ClInclude Include="BattleBossController.h" />
-    <ClInclude Include="BattleGround.h" />
-    <ClInclude Include="BattleHint.h" />
-    <ClInclude Include="BattlePlayer.h" />
-    <ClInclude Include="BattlePlayerUpdater.h" />
-    <ClInclude Include="BattleSystem.h" />
-    <ClInclude Include="BossCleanerController.h" />
-    <ClInclude Include="bullet.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Camera3D.h" />
     <ClInclude Include="Collision.h" />
-    <ClInclude Include="CollisionGameObject.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
-    <ClInclude Include="EnemyChaser.h" />
     <ClInclude Include="Game3D.h" />
-    <ClInclude Include="GameSetting.h" />
     <ClInclude Include="Grid.h" />
-    <ClInclude Include="particle.h" />
+    <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene3D.h" />
-    <ClInclude Include="SecondScene.h" />
     <ClInclude Include="Shader3D.h" />
-    <ClInclude Include="TriggerCollider.h" />
-    <ClInclude Include="DialogueUIManager.h" />
     <ClInclude Include="direct3d.h" />
     <ClInclude Include="DirectXTex.h" />
-    <ClInclude Include="Effect.h" />
-    <ClInclude Include="Enemy.h" />
-    <ClInclude Include="EnemySpawner.h" />
     <ClInclude Include="Fade.h" />
-    <ClInclude Include="Game.h" />
     <ClInclude Include="GameWindow.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="Key_Logger.h" />
-    <ClInclude Include="Map.h" />
-    <ClInclude Include="MapCollisionInteraction.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="MouseRenderer.h" />
     <ClInclude Include="NekoTool.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="PlayerAnimationLoader.h" />
-    <ClInclude Include="PlayerUpdater.h" />
     <ClInclude Include="polygon.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Score.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sprite_anim.h" />
     <ClInclude Include="system_timer.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="Title.h" />
-    <ClInclude Include="TitleUIDrawer.h" />
-    <ClInclude Include="UIInteraction.h" />
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>

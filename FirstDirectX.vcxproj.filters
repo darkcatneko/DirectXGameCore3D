@@ -64,9 +64,6 @@
     <ClCompile Include="Key_Logger.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Audio.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -79,106 +76,10 @@
     <ClCompile Include="MouseRenderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Background.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleBossBoomber.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleBossController.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleGround.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleHint.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattlePlayer.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattlePlayerUpdater.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BattleSystem.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="BossCleanerController.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="bullet.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="CollisionGameObject.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="DialogueUIManager.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Effect.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyChaser.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemySpawner.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="GameSetting.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Map.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="MapCollisionInteraction.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="particle.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerAnimationLoader.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerUpdater.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Score.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="SecondScene.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
     <ClCompile Include="sprite.cpp">
       <Filter>ソース ファイル\2D</Filter>
     </ClCompile>
     <ClCompile Include="sprite_anim.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="Title.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="TitleUIDrawer.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerCollider.cpp">
-      <Filter>ソース ファイル\2D</Filter>
-    </ClCompile>
-    <ClCompile Include="UIInteraction.cpp">
       <Filter>ソース ファイル\2D</Filter>
     </ClCompile>
     <ClCompile Include="Scene3D.cpp">
@@ -198,6 +99,15 @@
     </ClCompile>
     <ClCompile Include="Game3D.cpp">
       <Filter>ソース ファイル\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Sampler.cpp">
+      <Filter>ソース ファイル\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>ソース ファイル\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>ソース ファイル\2D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -246,28 +156,7 @@
     <ClInclude Include="Key_Logger.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="bullet.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemySpawner.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Collision.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Effect.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Audio.h">
@@ -276,85 +165,10 @@
     <ClInclude Include="NekoTool.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Score.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Fade.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Title.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerUpdater.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Background.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Map.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerAnimationLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="MouseRenderer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="TitleUIDrawer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="UIInteraction.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CollisionGameObject.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="MapCollisionInteraction.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerCollider.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogueUIManager.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="SecondScene.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyChaser.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleSystem.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattlePlayer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattlePlayerUpdater.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleGround.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleBossController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BossCleanerController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="particle.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="GameSetting.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleBossBoomber.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="BattleHint.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Cube.h">
@@ -373,6 +187,12 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Game3D.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampler.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
