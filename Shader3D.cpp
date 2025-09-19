@@ -5,6 +5,7 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include <fstream>
 #include "Shader3D.h"
+#include "Sampler.h"
 
 
 static ID3D11VertexShader* g_pVertexShader = nullptr;
@@ -13,7 +14,6 @@ static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer2 = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
-static ID3D11SamplerState* g_pSampleState = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -118,26 +118,12 @@ bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return false;
 	}
 
-	D3D11_SAMPLER_DESC sampler_desc{};
-	sampler_desc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//borderColor
-	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampler_desc.MipLODBias = 0;
-	sampler_desc.MaxAnisotropy = 8;
-	sampler_desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	sampler_desc.MinLOD = 0;
-	sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	g_pDevice->CreateSamplerState(&sampler_desc, &g_pSampleState);
 
 	return true;
 }
 
 void Shader3D_Finalize()
 {
-	SAFE_RELEASE(g_pSampleState);
 	SAFE_RELEASE(g_pPixelShader);
 	SAFE_RELEASE(g_pVSConstantBuffer0);
 	SAFE_RELEASE(g_pVSConstantBuffer1);
@@ -197,5 +183,5 @@ void Shader3D_Begin()
 	g_pContext->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	g_pContext->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
 
-	g_pContext->PSSetSamplers(0, 1, &g_pSampleState);
+	Sampler_SetFilterAnisotropic();
 }

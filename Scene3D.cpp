@@ -14,6 +14,7 @@
 #include "MouseRenderer.h"
 #include "Camera3D.h"
 #include "Audio.h"
+#include "Sampler.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -21,6 +22,7 @@ static XMFLOAT3 g_cubePosition;
 static XMFLOAT3 g_cubeVelocity;
 void Scene3D_Initialize(HWND& hWnd)
 {
+	g_cubePosition = { 0.0f,0.5f,0.0f };
 	switch (g_SceneEnum)
 	{
 	case Scene3D::SCENE_INIT:
@@ -29,6 +31,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Mouse_Initialize(hWnd);
 		Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Sampler_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
@@ -56,6 +59,7 @@ void Scene3D_Finalize()
 	Direct3D_Finalize();
 	UninitAudio();
 	SpriteAnim_Finitialize();
+	Sampler_Finalize();
 }
 
 void Scene3D_Update(double time)
@@ -79,18 +83,7 @@ void Scene3D_Update(double time)
 
 void Scene3D_Draw()
 {
-	//Cube_Draw(g_cubePosition);
-	for (int y = 10; y >= 0; y--)
-	{
-		for (int z = y; z >= 0; z--)
-		{
-			for (int x = y; x >= 0; x--)
-			{
-				Cube_Draw({ -5.0f + x * 1.0f + 0.5f * (10.0f - y) ,(10.0f - y) * 1.0f + 0.5f,5.0f - z * 1.0f - 0.5f * (10.0f - y) });
-			}
-		}
-
-	}
+	Cube_Draw(g_cubePosition);
 	Grid_Draw();
 	MouseRenderer_Draw();
 }
