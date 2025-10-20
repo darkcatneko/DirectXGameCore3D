@@ -37,7 +37,7 @@ void Scene3D_Initialize(HWND& hWnd)
 
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Light_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-		//MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
@@ -87,7 +87,7 @@ void Scene3D_Draw()
 	Light_SetAmbient({ 0.3f,0.3f,0.3f });
 	Light_SetDirectionalWorld({ 0.0f,0.0f,1.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
 	Cube_Draw(g_cubePosition);
-	//MeshField_Draw(g_cubePosition);
+	MeshField_Draw(g_cubePosition);
 	Grid_Draw();
 	MouseRenderer_Draw();
 }

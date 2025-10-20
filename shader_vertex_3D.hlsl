@@ -60,7 +60,7 @@ VS_OUT main(VS_IN vi)
     
     float normalW = mul(float4(vi.normalL.xyz,0.0f),world);
     normalW = normalize(normalW);
-    float d1 = dot(-directional_world_vector, vi.normalL);
+    float d1 = max(0,dot(-directional_world_vector, vi.normalL));
     
     float3 color = vi.color.rgb * directional_color.rgb * d1 +ambient_color.rgb *vi.color.rgb;
    

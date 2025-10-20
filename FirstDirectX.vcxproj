@@ -166,6 +166,7 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MeshField.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene3D.cpp" />
     <ClCompile Include="Shader3D.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshField.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene3D.h" />
     <ClInclude Include="Shader3D.h" />
@@ -233,6 +235,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="shader_vertex_3D.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader_vertex_Field.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>

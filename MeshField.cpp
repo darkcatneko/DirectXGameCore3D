@@ -22,6 +22,7 @@ static constexpr int NUM_INDEX = 3 * 2 * FIELD_H_MESH_COUNT* FIELD_V_MESH_COUNT;
 struct  Vertex3D
 {
 	XMFLOAT3 position;
+	XMFLOAT3 normal;
 	XMFLOAT4 color;
 	XMFLOAT2 texcoord;
 };
@@ -63,6 +64,7 @@ void MeshField_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 			//ъо+ъо“IЌЕ‘еќЙ * гs;
 			int index = x + FIELD_H_MESH_VERTEX_COUNT * z;
 			g_MeshFieldVertex[index].position = { x * FIELD_MESH_SIZE,0.0f,z * FIELD_MESH_SIZE };
+			g_MeshFieldVertex[index].normal = { 0.0f,1.0f,0.0f };
 			g_MeshFieldVertex[index].color = { 1.0f,1.0f,1.0f,1.0f };
 			g_MeshFieldVertex[index].texcoord = { x * 1.0f, z * 1.0f };
 		}
