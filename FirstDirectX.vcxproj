@@ -164,6 +164,8 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Game3D.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="MeshField.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene3D.cpp" />
     <ClCompile Include="Shader3D.cpp" />
@@ -180,13 +182,8 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="MouseRenderer.cpp" />
     <ClCompile Include="NekoTool.cpp" />
-    <ClCompile Include="polygon.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="ShaderField.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sprite_anim.cpp" />
     <ClCompile Include="system_timer.cpp" />
@@ -203,6 +200,8 @@
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="Game3D.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="MeshField.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene3D.h" />
     <ClInclude Include="Shader3D.h" />
@@ -215,13 +214,8 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="MouseRenderer.h" />
     <ClInclude Include="NekoTool.h" />
-    <ClInclude Include="polygon.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="shader.h" />
+    <ClInclude Include="ShaderField.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sprite_anim.h" />
     <ClInclude Include="system_timer.h" />
@@ -231,6 +225,7 @@
   <ItemGroup>
     <FxCompile Include="shader_pixel_2d.hlsl" />
     <FxCompile Include="shader_pixel_3D.hlsl" />
+    <FxCompile Include="shader_pixel_Field.hlsl" />
     <FxCompile Include="shader_vertex_2d.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

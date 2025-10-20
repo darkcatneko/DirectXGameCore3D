@@ -8,13 +8,14 @@
 #include "Cube.h"
 #include "Grid.h"
 #include "sprite.h"
-#include "polygon.h"
 #include "Texture.h"
 #include "Fade.h"
 #include "MouseRenderer.h"
 #include "Camera3D.h"
 #include "Audio.h"
 #include "Sampler.h"
+#include "MeshField.h"
+#include "Light.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -35,13 +36,14 @@ void Scene3D_Initialize(HWND& hWnd)
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Light_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		//MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-		Polygon_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 
 		Fade_Initialize();
 		MouseRenderer_Initialize();
-		Camera3D_Initialize();
+		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});
 		break;
 	default:
 		break;
@@ -53,7 +55,6 @@ void Scene3D_Finalize()
 	Texture_Finalize();
 	Sprite_Finalize();
 	Cube_Finitialize();
-	Polygon_Finalize();
 	Mouse_Finalize();
 	Shader_Finalize();
 	Direct3D_Finalize();
@@ -83,7 +84,10 @@ void Scene3D_Update(double time)
 
 void Scene3D_Draw()
 {
+	Light_SetAmbient({ 0.3f,0.3f,0.3f });
+	Light_SetDirectionalWorld({ 0.0f,0.0f,1.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
 	Cube_Draw(g_cubePosition);
+	//MeshField_Draw(g_cubePosition);
 	Grid_Draw();
 	MouseRenderer_Draw();
 }

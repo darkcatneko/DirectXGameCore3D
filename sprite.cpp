@@ -21,11 +21,6 @@ using namespace DirectX;
 
 #pragma coment(lib,"d3d11.lib")
 
-#if defined(DEBUG)||defined(_DEBUG)
-#pragma comment(lib,"DirectXTex_Debug.lib")
-#else
-#pragma comment(lib,"DirectXTex_Release.lib")
-#endif
 
 
 static constexpr int NUM_VERTEX = 4; // 頂点数

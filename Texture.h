@@ -23,7 +23,7 @@ int Texture_Load(const wchar_t* pFilename);
 
 void Texture_AllRelease();
 
-void Texture_SetTexture(int texid);
+void Texture_SetTexture(int texid,int slot = 0);
 
 unsigned int Texture_Width(int texid);
 unsigned int Texture_Height(int texid);

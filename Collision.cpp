@@ -1,7 +1,6 @@
 ﻿#include "Collision.h"
 #include "direct3d.h"
 #include "d3d11.h"
-#include "DirectXTex.h"
 #include "Texture.h"
 #include "shader.h"
 #include "Camera.h"
@@ -54,37 +53,37 @@ bool OnBoxCollisionEnter(const Box& a, const Box& b)
 	return al<br && ar>bl && at<bb && ab>bt;
 }
 
-void Collision_Debug_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-{
-	debugUsed_Texid = Texture_Load(L"white.png");
-	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
-	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
-
-
-	// デバイスとデバイスコンテキストの保存
-	g_pDevice = pDevice;
-	g_pContext = pContext;
-
-	// 頂点バッファ生成
-	D3D11_BUFFER_DESC bd = {};
-	bd.Usage = D3D11_USAGE_DYNAMIC;
-	bd.ByteWidth = sizeof(Vertex) * g_numVertex;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
-
-	TexMetadata metadata;
-	ScratchImage image;
-
-	LoadFromWICFile(L"resource/DOT.png", WIC_FLAGS_NONE, &metadata, image);
-	HRESULT hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_pTexture);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr, "NO FILE", "ERROR", MB_OK);
-
-	}
-}
+//void Collision_Debug_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+//{
+//	debugUsed_Texid = Texture_Load(L"white.png");
+//	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
+//	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
+//
+//
+//	// デバイスとデバイスコンテキストの保存
+//	g_pDevice = pDevice;
+//	g_pContext = pContext;
+//
+//	// 頂点バッファ生成
+//	D3D11_BUFFER_DESC bd = {};
+//	bd.Usage = D3D11_USAGE_DYNAMIC;
+//	bd.ByteWidth = sizeof(Vertex) * g_numVertex;
+//	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+//	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+//
+//	g_pDevice->CreateBuffer(&bd, NULL, &g_pVertexBuffer);
+//
+//	TexMetadata metadata;
+//	ScratchImage image;
+//
+//	LoadFromWICFile(L"resource/DOT.png", WIC_FLAGS_NONE, &metadata, image);
+//	HRESULT hr = CreateShaderResourceView(g_pDevice, image.GetImages(), image.GetImageCount(), metadata, &g_pTexture);
+//	if (FAILED(hr))
+//	{
+//		MessageBox(nullptr, "NO FILE", "ERROR", MB_OK);
+//
+//	}
+//}
 
 void Collision_Debug_Finitialize()
 {

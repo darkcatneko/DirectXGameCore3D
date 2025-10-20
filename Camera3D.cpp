@@ -20,19 +20,25 @@ static constexpr float CAMERA_MOVE_SPEED = 8.0f;
 static constexpr float CAMERA_ROTATION_SPEED = XMConvertToRadians(60);
 static XMFLOAT4X4 g_CameraMatrix;
 static XMFLOAT4X4 g_CameraMatrix_Perspective;
+static float g_Fov = XMConvertToRadians(60);
 
 static bool g_CameraDragging = false;
 static XMFLOAT2 g_MousePrevDragPosition;
 
 float now_angle;
-void Camera3D_Initialize()
+void Camera3D_Initialize(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& front, const DirectX::XMFLOAT3& right)
 {
 	Camera3D_Pos = { 2.0f, 2.0f, -5.0f };
 	Camera3D_AimPos = { 0,0,0 };
-	g_CameraPosition = { 0.0f,0.0f,-5.0f };
-	g_CameraFront = { 0.0f,0.0f, 1.0f };
-	g_CameraUP = { 0.0f,1.0f, 0.0f };
-	g_CameraRight = { 1.0f,0.0f, 0.0f };
+
+	g_CameraPosition = position;
+	XMVECTOR f = XMVector3Normalize(XMLoadFloat3(&front));
+	XMVECTOR r = XMVector3Normalize(XMLoadFloat3(&right) * XMVECTOR {1.0f,0.0f,1.0f});
+	XMVECTOR u = XMVector3Normalize(XMVector3Cross(f, r));
+	XMStoreFloat3(&g_CameraFront, f);
+	XMStoreFloat3(&g_CameraRight, r);
+	XMStoreFloat3(&g_CameraUP, u);
+
 }
 
 void Camera3D_Finitialize()
@@ -81,7 +87,7 @@ void Camera3D_Update(double elapsed_time)
 		XMVECTOR dir = aimPos - camPos;
 
 		// 3. 建立繞 Y 軸的旋轉 quaternion
-		float angle = XMConvertToRadians(1.0f); // 每次按下旋轉 1 度，可調
+		constexpr float angle = XMConvertToRadians(1.0f); // 每次按下旋轉 1 度，可調
 		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), angle);
 
 		// 4. 旋轉方向向量
@@ -103,7 +109,7 @@ void Camera3D_Update(double elapsed_time)
 		XMVECTOR dir = aimPos - camPos;
 
 		// 3. 建立繞 Y 軸的旋轉 quaternion
-		float angle = XMConvertToRadians(-1.0f); // 每次按下旋轉 1 度，可調
+		constexpr float angle = XMConvertToRadians(-1.0f); // 每次按下旋轉 1 度，可調
 
 		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), angle);
 
@@ -281,6 +287,14 @@ void HAL_Camera_Movement_Update(float time)
 	{
 		pos += MouseLogger_IsScroll().value / 40.0f * front * CAMERA_MOVE_SPEED * time;
 	}
+	if (KeyLogger_IsPressed(KK_Z))
+	{
+		g_Fov += XMConvertToRadians(-10)*time;
+	}
+	if (KeyLogger_IsPressed(KK_C))
+	{
+		g_Fov += XMConvertToRadians(10) * time;
+	}
 
 	DirectX::XMStoreFloat3(&g_CameraPosition, pos);
 	DirectX::XMStoreFloat3(&g_CameraRight, right);
@@ -295,11 +309,11 @@ void HAL_Camera_Movement_Update(float time)
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
 
-	constexpr float fovAngleY = XMConvertToRadians(60.0f);
+	//constexpr float fovAngleY = XMConvertToRadians(60.0f);
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
 	float nearZ = 0.1f;
 	float farZ = 200.0f;
-	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
+	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(g_Fov, aspectRatio, nearZ, farZ);
 
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
@@ -322,6 +336,11 @@ DirectX::XMFLOAT3 Camera_GetFrontVector()
 DirectX::XMFLOAT3 Camera_GetCameraPos()
 {
 	return g_CameraPosition;
+}
+
+float Camera_GetFov()
+{
+	return g_Fov;
 }
 
 void CameraDragUpdate(float time)
@@ -373,12 +392,11 @@ void CameraDragUpdate(float time)
 	);
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
-
-	constexpr float fovAngleY = XMConvertToRadians(60.0f);
+	
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
 	float nearZ = 0.1f;
 	float farZ = 200.0f;
-	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
+	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(g_Fov, aspectRatio, nearZ, farZ);
 
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);

@@ -20,6 +20,15 @@ cbuffer VS_CONSTANT_BUFFER : register(b3)
 {
     float4x4 projection;
 };
+cbuffer VS_CONSTANT_BUFFER : register(b4)
+{
+    float4 ambient_color;
+};
+cbuffer VS_CONSTANT_BUFFER : register(b5)
+{
+    float4 directional_world_vector;
+    float4 directional_color;
+};
 
 struct VS_OUT
 {
@@ -30,6 +39,7 @@ struct VS_OUT
 struct VS_IN
 {
     float4 posL : POSITION0;
+    float4 normalL : NORMAL0;
     float4 color : COLOR0;
     float2 uv : TEXCOORD0;
 };
@@ -48,7 +58,13 @@ VS_OUT main(VS_IN vi)
     vo.posH = mul(vi.posL, mtxWVP);
     
     
-    vo.color = vi.color;
+    float normalW = mul(float4(vi.normalL.xyz,0.0f),world);
+    normalW = normalize(normalW);
+    float d1 = dot(-directional_world_vector, vi.normalL);
+    
+    float3 color = vi.color.rgb * directional_color.rgb * d1 +ambient_color.rgb *vi.color.rgb;
+   
+    vo.color = float4(color, vi.color.a);
     vo.uv = vi.uv;
     
     return vo;

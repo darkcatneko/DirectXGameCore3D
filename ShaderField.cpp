@@ -1,3 +1,4 @@
+#include "ShaderField.h"
 #include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -5,8 +6,6 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include <fstream>
 #include "Sampler.h"
-#include "Shader3D.h"
-
 
 static ID3D11VertexShader* g_pVertexShader = nullptr;
 static ID3D11InputLayout* g_pInputLayout = nullptr;
@@ -20,7 +19,7 @@ static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
 
-bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+bool ShaderField_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	HRESULT hr; // 戻り値格納用
 
@@ -67,7 +66,6 @@ bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	// 頂点レイアウトの定義
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,          0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
@@ -95,9 +93,9 @@ bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer2);
 
 	// 事前コンパイル済みピクセルシェーダーの読み込み
-	std::ifstream ifs_ps("shader_pixel_3D.cso", std::ios::binary);
+	std::ifstream ifs_ps("shader_pixel_Field.cso", std::ios::binary);
 	if (!ifs_ps) {
-		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_3D.cso", "エラー", MB_OK);
+		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_Field.cso", "エラー", MB_OK);
 		return false;
 	}
 
@@ -123,7 +121,7 @@ bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	return true;
 }
 
-void Shader3D_Finalize()
+void ShaderField_Finalize()
 {
 	SAFE_RELEASE(g_pPixelShader);
 	SAFE_RELEASE(g_pVSConstantBuffer0);
@@ -133,7 +131,7 @@ void Shader3D_Finalize()
 	SAFE_RELEASE(g_pVertexShader);
 }
 
-void Shader3D_SetProjectionMatrix(const DirectX::XMMATRIX& matrix)
+void ShaderField_SetProjectionMatrix(const DirectX::XMMATRIX& matrix)
 {
 	// 定数バッファ格納用行列の構造体を定義
 	XMFLOAT4X4 transpose;
@@ -145,7 +143,7 @@ void Shader3D_SetProjectionMatrix(const DirectX::XMMATRIX& matrix)
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer2, 0, nullptr, &transpose, 0, 0);
 }
 
-void Shader3D_SetWorldMatrix(const DirectX::XMMATRIX& matrix)
+void ShaderField_SetWorldMatrix(const DirectX::XMMATRIX& matrix)
 {
 	// 定数バッファ格納用行列の構造体を定義
 	XMFLOAT4X4 transpose;
@@ -157,7 +155,7 @@ void Shader3D_SetWorldMatrix(const DirectX::XMMATRIX& matrix)
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer0, 0, nullptr, &transpose, 0, 0);
 }
 
-void Shader3D_SetViewMatrix(const DirectX::XMMATRIX& matrix)
+void ShaderField_SetViewMatrix(const DirectX::XMMATRIX& matrix)
 {
 	// 定数バッファ格納用行列の構造体を定義
 	XMFLOAT4X4 transpose;
@@ -170,7 +168,7 @@ void Shader3D_SetViewMatrix(const DirectX::XMMATRIX& matrix)
 }
 
 
-void Shader3D_Begin()
+void ShaderField_Begin()
 {
 	// 頂点シェーダーとピクセルシェーダーを描画パイプラインに設定
 	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
