@@ -7,6 +7,7 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "assimp/matrix4x4.h"
+#include "DirectXMath.h"
 #pragma comment (lib, "assimp-vc143-mt.lib")
 
 
@@ -24,4 +25,6 @@ struct MODEL
 
 MODEL* ModelLoad(const char* FileName);
 void ModelRelease(MODEL* model);
+
+void ModelDraw(MODEL* model, DirectX::XMFLOAT3 gameobjectPos);
 

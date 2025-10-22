@@ -3,6 +3,8 @@
 #include "texture.h"
 #include "model.h"
 #include "DirectXMath.h"
+#include "WICTextureLoader11.h"
+#include "Shader3D.h"
 
 using namespace DirectX;
 
@@ -14,6 +16,8 @@ struct  Vertex
 	XMFLOAT4 color;
 	XMFLOAT2 texcoord;
 };
+static int g_textureWhite = -1;
+static float g_rotate;
 
 MODEL* ModelLoad( const char *FileName )
 {
@@ -96,22 +100,33 @@ MODEL* ModelLoad( const char *FileName )
 	}
 
 
-
-	//テクスチャ読み込み
-	for(int i = 0; i < model->AiScene->mNumTextures; i++)
+	if (model->AiScene->mNumTextures == 0)
 	{
-		aiTexture* aitexture = model->AiScene->mTextures[i];
-
-		ID3D11ShaderResourceView* texture;
-		TexMetadata metadata;
-		ScratchImage image;
-		LoadFromWICMemory(aitexture->pcData, aitexture->mWidth, WIC_FLAGS_NONE, &metadata, image);
-		CreateShaderResourceView(DirectXGetDevice(), image.GetImages(), image.GetImageCount(), metadata, &texture);
-		assert(texture);
-
-		model->Texture[aitexture->mFilename.data] = texture;
+		g_textureWhite = Texture_Load(L"white.png");
 	}
+	else {
+		//テクスチャ読み込み
+		for (int i = 0; i < model->AiScene->mNumTextures; i++)
+		{
+			aiTexture* aitexture = model->AiScene->mTextures[i];
 
+			ID3D11ShaderResourceView* texture;
+			ID3D11Resource* resource;
+
+
+			CreateWICTextureFromMemory(
+				Direct3D_GetDevice(),
+				Direct3D_GetContext(),
+				(const uint8_t*)aitexture->pcData,
+				(size_t)aitexture->mWidth,
+				&resource,
+				&texture
+			);
+			assert(texture);
+
+			model->Texture[aitexture->mFilename.data] = texture;
+		}
+	}
 
 
 	return model;
@@ -142,6 +157,52 @@ void ModelRelease(MODEL* model)
 
 
 	delete model;
+}
+
+void ModelDraw(MODEL* model, XMFLOAT3 gameobjectPos)
+{
+	Shader3D_Begin();
+
+	
+	// プリミティブトポロジ設定
+	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	Direct3D_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//world matrix
+		//XMMATRIX mtxWorld = XMMatrixIdentity();
+	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
+	XMMATRIX mtxRot = XMMatrixRotationY(g_rotate);
+	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	XMMATRIX mtxWorld = mtxTrans * mtxRot * mtxScale;
+	Shader3D_SetWorldMatrix(mtxWorld);
+	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
+	{
+		if (model->AiScene->mNumTextures)
+		{
+			aiString texture;
+			aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
+			aimaterial->GetTexture(aiTextureType_DIFFUSE, 00, &texture);
+
+			if (texture != aiString(""))
+			{
+				Direct3D_GetContext()->PSSetShaderResources(0, 1, &model->Texture[texture.data]);
+			}
+		}
+		else
+		{
+			Texture_SetTexture(g_textureWhite);
+		}
+
+
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
+
+		// インデックスバッファを描画パイプラインに設定
+		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
+
+		// ポリゴン描画命令発行
+		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces*3, 0, 0); //TO DELETE
+	}
 }
 
 

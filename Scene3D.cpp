@@ -16,11 +16,16 @@
 #include "Sampler.h"
 #include "MeshField.h"
 #include "Light.h"
+#include "model.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
 static XMFLOAT3 g_cubePosition;
 static XMFLOAT3 g_cubeVelocity;
+
+//Test MODEL
+static MODEL* g_pModelTest = nullptr;
+
 void Scene3D_Initialize(HWND& hWnd)
 {
 	g_cubePosition = { 0.0f,0.5f,0.0f };
@@ -34,7 +39,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sampler_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-
+		
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Light_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
@@ -44,6 +49,8 @@ void Scene3D_Initialize(HWND& hWnd)
 		Fade_Initialize();
 		MouseRenderer_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});
+
+		g_pModelTest = ModelLoad("test.fbx");
 		break;
 	default:
 		break;
@@ -88,6 +95,7 @@ void Scene3D_Draw()
 	Light_SetDirectionalWorld({ 0.0f,0.0f,1.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
 	Cube_Draw(g_cubePosition);
 	MeshField_Draw(g_cubePosition);
+	ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
 	Grid_Draw();
 	MouseRenderer_Draw();
 }
