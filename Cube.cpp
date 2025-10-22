@@ -175,6 +175,7 @@ void Cube_Update(double elapsed_time)
 void Cube_Draw(XMFLOAT3 gameobjectPos)
 {
 	Shader3D_Begin();
+	Shader3d_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 	// 頂点バッファを描画パイプラインに設定
 	Texture_SetTexture(g_CubeTexTempId);
 	UINT stride = sizeof(Vertex3D);

@@ -51,10 +51,10 @@ MODEL* ModelLoad( const char *FileName )
 
 			D3D11_BUFFER_DESC bd;
 			ZeroMemory(&bd, sizeof(bd));
-			bd.Usage = D3D11_USAGE_DYNAMIC;
+			bd.Usage = D3D11_USAGE_DEFAULT;
 			bd.ByteWidth = sizeof(Vertex) * mesh->mNumVertices;
 			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			bd.CPUAccessFlags = 0;
 
 			D3D11_SUBRESOURCE_DATA sd;
 			ZeroMemory(&sd, sizeof(sd));
@@ -174,14 +174,13 @@ void ModelDraw(MODEL* model, XMFLOAT3 gameobjectPos)
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 	XMMATRIX mtxWorld = mtxTrans * mtxRot * mtxScale;
 	Shader3D_SetWorldMatrix(mtxWorld);
-	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
-	{
+	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++) {
+
 		if (model->AiScene->mNumTextures)
 		{
 			aiString texture;
 			aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
-			aimaterial->GetTexture(aiTextureType_DIFFUSE, 00, &texture);
-
+			aimaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texture);
 			if (texture != aiString(""))
 			{
 				Direct3D_GetContext()->PSSetShaderResources(0, 1, &model->Texture[texture.data]);
@@ -192,16 +191,21 @@ void ModelDraw(MODEL* model, XMFLOAT3 gameobjectPos)
 			Texture_SetTexture(g_textureWhite);
 		}
 
+		aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
+		aiColor3D diffuse;
+		aimaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+		Shader3d_SetColor({ diffuse.r, diffuse.g, diffuse.b, 1.0f });
 
+
+
+		// 頂点バッファを描画パイプラインに設定
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
-
-		// インデックスバッファを描画パイプラインに設定
 		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
 		// ポリゴン描画命令発行
-		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces*3, 0, 0); //TO DELETE
+		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces * 3, 0, 0);
 	}
 }
 

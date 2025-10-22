@@ -13,6 +13,7 @@ static ID3D11InputLayout* g_pInputLayout = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer2 = nullptr;
+static ID3D11Buffer* g_pPSConstantBuffer0 = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -118,7 +119,10 @@ bool Shader3D_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		hal::dout << "Shader_Initialize() : ピクセルシェーダーの作成に失敗しました" << std::endl;
 		return false;
 	}
+	// PIXELシェーダー用定数バッファの作成
+	buffer_desc.ByteWidth = sizeof(XMFLOAT4); // バッファのサイズ
 
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer0);
 
 	return true;
 }
@@ -129,6 +133,7 @@ void Shader3D_Finalize()
 	SAFE_RELEASE(g_pVSConstantBuffer0);
 	SAFE_RELEASE(g_pVSConstantBuffer1);
 	SAFE_RELEASE(g_pVSConstantBuffer2);
+	SAFE_RELEASE(g_pPSConstantBuffer0);
 	SAFE_RELEASE(g_pInputLayout);
 	SAFE_RELEASE(g_pVertexShader);
 }
@@ -143,6 +148,11 @@ void Shader3D_SetProjectionMatrix(const DirectX::XMMATRIX& matrix)
 
 	// 定数バッファに行列をセット
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer2, 0, nullptr, &transpose, 0, 0);
+}
+
+void Shader3d_SetColor(const DirectX::XMFLOAT4 color)
+{
+	g_pContext->UpdateSubresource(g_pPSConstantBuffer0, 0, nullptr, &color, 0, 0);
 }
 
 void Shader3D_SetWorldMatrix(const DirectX::XMMATRIX& matrix)
@@ -184,5 +194,6 @@ void Shader3D_Begin()
 	g_pContext->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	g_pContext->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
 
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
 	Sampler_SetFilterAnisotropic();
 }
