@@ -92,8 +92,8 @@ void Scene3D_Update(double time)
 void Scene3D_Draw()
 {
 	Light_SetAmbient({ 0.3f,0.3f,0.3f });
-	Light_SetDirectionalWorld({ 0.0f,0.0f,1.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
-	Cube_Draw(g_cubePosition);
+	Light_SetDirectionalWorld({ 0.0f,0.0f,1.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f},Camera_GetCameraPos());
+	//Cube_Draw(g_cubePosition);
 	MeshField_Draw(g_cubePosition);
 	ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
 	Grid_Draw();

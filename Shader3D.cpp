@@ -194,6 +194,6 @@ void Shader3D_Begin()
 	g_pContext->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	g_pContext->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
 
-	g_pContext->VSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
+	g_pContext->PSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
 	Sampler_SetFilterAnisotropic();
 }

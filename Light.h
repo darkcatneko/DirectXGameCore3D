@@ -6,7 +6,7 @@
 bool Light_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Light_Finalize();
 void Light_SetAmbient(const DirectX::XMFLOAT3& color);
-void Light_SetDirectionalWorld(const DirectX::XMFLOAT4& world_directional,const DirectX::XMFLOAT4& color);
+void Light_SetDirectionalWorld(const DirectX::XMFLOAT4& world_directional,const DirectX::XMFLOAT4& color, const DirectX::XMFLOAT3& camearPos);
 
 
 #endif // !LIGHT_H

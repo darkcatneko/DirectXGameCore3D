@@ -24,7 +24,7 @@ MODEL* ModelLoad( const char *FileName )
 	MODEL* model = new MODEL;
 
 
-	const std::string modelPath( FileName );
+	
 
 	model->AiScene = aiImportFile(FileName, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded);
 	assert(model->AiScene);
@@ -100,14 +100,13 @@ MODEL* ModelLoad( const char *FileName )
 	}
 
 
-	if (model->AiScene->mNumTextures == 0)
-	{
+
 		g_textureWhite = Texture_Load(L"white.png");
-	}
-	else {
-		//テクスチャ読み込み
-		for (int i = 0; i < model->AiScene->mNumTextures; i++)
+
+	//テクスチャ読み込み
+	for (int i = 0; i < model->AiScene->mNumTextures; i++)
 		{
+
 			aiTexture* aitexture = model->AiScene->mTextures[i];
 
 			ID3D11ShaderResourceView* texture;
@@ -125,10 +124,67 @@ MODEL* ModelLoad( const char *FileName )
 			assert(texture);
 
 			model->Texture[aitexture->mFilename.data] = texture;
-		}
 	}
+	
+	//fbx's filebus
+	const std::string modelPath(FileName);
 
+	size_t pos = modelPath.find_last_of("/\\");
+	std::string directory;
 
+	if (pos!= std::string::npos)
+	{
+		directory = modelPath.substr(0, pos);
+	}
+	else
+	{
+		directory = "";
+	}
+	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
+	{
+		aiString filename;
+	}
+	//material out fbx
+	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
+	{
+		aiString filename;
+		aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
+		aimaterial->GetTexture(aiTextureType_DIFFUSE, 0, &filename);
+
+		if (filename.length ==0)
+		{
+			continue;
+		}
+
+		if (model->Texture.count(filename.C_Str())) 
+		{
+			continue;
+		}
+
+		ID3D11ShaderResourceView* texture;
+		ID3D11Resource* resource;
+
+		std::string texfilename = directory + "/" + filename.C_Str();
+
+		int len = MultiByteToWideChar(CP_UTF8, 0, texfilename.c_str(), -1, nullptr, 0);
+		wchar_t* pWideFilename = new wchar_t[len];
+		MultiByteToWideChar(CP_UTF8, 0, texfilename.c_str(), -1, pWideFilename, len);
+
+		CreateWICTextureFromFile(
+			Direct3D_GetDevice(),
+			Direct3D_GetContext(),
+			pWideFilename,
+			&resource,
+			&texture);
+
+		delete[] pWideFilename;
+
+		assert(texture);
+
+		resource->Release();//!!!!!!!!!!!!!!!!!
+
+		model->Texture[filename.C_Str()] = texture;
+	}
 	return model;
 }
 
