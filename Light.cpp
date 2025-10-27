@@ -6,6 +6,7 @@ using namespace DirectX;
 
 static ID3D11Buffer* g_pPSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pPSConstantBuffer2 = nullptr;
+static ID3D11Buffer* g_pPSConstantBuffer3 = nullptr;
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
@@ -14,7 +15,15 @@ struct  DirectionalLight
 {
 	XMFLOAT4 Directional;
 	XMFLOAT4 Color;
-	XMFLOAT4 CameraPos;
+	
+
+};
+struct  SpecularLight
+{
+	XMFLOAT3 CameraPos;
+	float Power = 30.0f;
+	XMFLOAT4 Color ;
+
 };
 
 bool Light_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -30,7 +39,12 @@ bool Light_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	buffer_desc.ByteWidth = sizeof(DirectionalLight);
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer2);
+
+	buffer_desc.ByteWidth = sizeof(SpecularLight);
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer3);
 	return true;
+
+
 }
 
 void Light_Finalize()
@@ -44,9 +58,16 @@ void Light_SetAmbient(const DirectX::XMFLOAT3& color)
 	g_pContext->PSSetConstantBuffers(1, 1, &g_pPSConstantBuffer1);
 }
 
-void Light_SetDirectionalWorld(const DirectX::XMFLOAT4& world_directional, const DirectX::XMFLOAT4& color, const DirectX::XMFLOAT3& camearPos)
+void Light_SetDirectionalWorld(const DirectX::XMFLOAT4& world_directional, const DirectX::XMFLOAT4& color)
 {
-	DirectionalLight light{ world_directional,color,{camearPos.x,camearPos.y,camearPos.z,0.0f} };
+	DirectionalLight light{ world_directional,color };
 	g_pContext->UpdateSubresource(g_pPSConstantBuffer2, 0, nullptr, &light, 0, 0);
 	g_pContext->PSSetConstantBuffers(2, 1, &g_pPSConstantBuffer2);
+}
+
+void Light_SetSpecularWorld(const DirectX::XMFLOAT4& color, float power, const DirectX::XMFLOAT3& camearPos)
+{
+	SpecularLight light{ camearPos,power,color };
+	g_pContext->UpdateSubresource(g_pPSConstantBuffer3, 0, nullptr, &light, 0, 0);
+	g_pContext->PSSetConstantBuffers(3, 1, &g_pPSConstantBuffer3);
 }

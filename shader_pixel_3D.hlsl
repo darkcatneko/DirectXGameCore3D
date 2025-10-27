@@ -1,6 +1,6 @@
 cbuffer PS_CONSTANT_BUFFER : register(b0)
 {
-    float4 color;
+    float4 diffuse_color;
 };
 cbuffer PS_CONSTANT_BUFFER : register(b1)
 {
@@ -9,9 +9,13 @@ cbuffer PS_CONSTANT_BUFFER : register(b1)
 cbuffer PS_CONSTANT_BUFFER : register(b2)
 {
     float4 directional_world_vector;
-    float4 directional_color;
+    float4 directional_color = { 1.0f, 1.0f, 1.0f, 1.0f};
+};
+cbuffer PS_CONSTANT_BUFFER : register(b3)
+{
     float3 eyePosW;
-    //float gSpecularPower;
+    float gSpecularPower = 30.0f;
+    float4 Specular_color = { 0.1f, 0.1f, 0.1f, 1.0f };
 };
 struct PS_IN
 {
@@ -26,15 +30,27 @@ SamplerState samp;
 
 float4 main(PS_IN pi) : SV_TARGET
 {    
+    //çﬁéøË¯êF
+    float3 material_color = tex.Sample(samp, pi.uv).rgb * pi.color.rgb * diffuse_color.rgb;
+    
+    //ïΩçsåı
     float4 normalW = normalize(pi.normalW);
     float dl = max(0.0f, dot(-directional_world_vector, normalW));
+    float3 diffuse = material_color * directional_color.rgb * dl;
     
+    //ä¬ã´åı
+    float3 ambient = material_color * ambient_color.rgb;
+    
+    //specular
     float3 toEye = normalize(eyePosW - pi.posW.xyz);
-    float3 r = reflect(directional_world_vector, pi.normalW).xyz;
-    float t = pow(max(dot(r, toEye), 0.0f), 10.0f);
+    float3 r = reflect(directional_world_vector, normalW).xyz;
+    float t = pow(max(dot(r, toEye), 0.0f), gSpecularPower);
+    float3 specular = Specular_color.rgb * t;
     
-    float3 lcolor = pi.color.rgb * directional_color.rgb * dl + ambient_color.rgb * pi.color.rgb;
-    lcolor += float3(1.0f, 1.0f, 1.0f) * t;
     
-    return tex.Sample(samp, pi.uv) * float4(lcolor, 1.0f) * color;
+    
+    float alpha = tex.Sample(samp, pi.uv).a * pi.color.a * diffuse_color.a;
+    float3 lcolor = ambient + diffuse + specular;
+    
+    return float4(lcolor, alpha);
 }

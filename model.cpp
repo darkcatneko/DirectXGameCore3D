@@ -19,7 +19,7 @@ struct  Vertex
 static int g_textureWhite = -1;
 static float g_rotate;
 
-MODEL* ModelLoad( const char *FileName )
+MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 {
 	MODEL* model = new MODEL;
 
@@ -37,16 +37,23 @@ MODEL* ModelLoad( const char *FileName )
 	{
 		aiMesh* mesh = model->AiScene->mMeshes[m];
 
+
 		// 頂点バッファ生成
 		{
 			Vertex* vertex = new Vertex[mesh->mNumVertices];
 
 			for (unsigned int v = 0; v < mesh->mNumVertices; v++)
 			{
-				vertex[v].position = XMFLOAT3(mesh->mVertices[v].x, -mesh->mVertices[v].z, mesh->mVertices[v].y);
-				vertex[v].texcoord = XMFLOAT2( mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y);
+				if (bBlender) {
+					vertex[v].position = XMFLOAT3(mesh->mVertices[v].x * scale, -mesh->mVertices[v].z * scale, mesh->mVertices[v].y * scale);
+					vertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, -mesh->mNormals[v].z, mesh->mNormals[v].y);
+				}
+				else {
+					vertex[v].position = XMFLOAT3(mesh->mVertices[v].x * scale, mesh->mVertices[v].y * scale, mesh->mVertices[v].z * scale);
+					vertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z);
+				}
 				vertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-				vertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, -mesh->mNormals[v].z, mesh->mNormals[v].y);
+				vertex[v].texcoord = XMFLOAT2(mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y);
 			}
 
 			D3D11_BUFFER_DESC bd;
@@ -64,6 +71,7 @@ MODEL* ModelLoad( const char *FileName )
 
 			delete[] vertex;
 		}
+
 
 
 		// インデックスバッファ生成
@@ -101,7 +109,7 @@ MODEL* ModelLoad( const char *FileName )
 
 
 
-		g_textureWhite = Texture_Load(L"white.png");
+	g_textureWhite = Texture_Load(L"white.png");
 
 	//テクスチャ読み込み
 	for (int i = 0; i < model->AiScene->mNumTextures; i++)

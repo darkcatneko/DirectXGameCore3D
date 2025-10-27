@@ -23,7 +23,7 @@ struct MODEL
 };
 
 
-MODEL* ModelLoad(const char* FileName);
+MODEL* ModelLoad(const char* FileName, float scale, bool bBlender);
 void ModelRelease(MODEL* model);
 
 void ModelDraw(MODEL* model, DirectX::XMFLOAT3 gameobjectPos);

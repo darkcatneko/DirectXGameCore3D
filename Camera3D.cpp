@@ -353,7 +353,7 @@ void CameraDragUpdate(float time)
 	XMVECTOR up = XMLoadFloat3(&g_CameraUP);
 	XMVECTOR pos = XMLoadFloat3(&g_CameraPosition);
 
-	if (MouseLogger_IsTrigger(1) && KeyLogger_IsPressed(KK_LEFTALT))
+	if (MouseLogger_IsTrigger(1) && KeyLogger_IsPressed(KK_CAPSLOCK))
 	{
 		g_CameraDragging = true;
 		g_MousePrevDragPosition = { (float)mouse_state.x,(float)mouse_state.y };
