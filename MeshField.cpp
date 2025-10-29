@@ -124,7 +124,7 @@ void MeshField_Draw(DirectX::XMFLOAT3 gameobjectPos)
 	//world matrix
 	//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
-	XMMATRIX mtxRot = XMMatrixRotationX(XMConvertToRadians(-90.0f));
+	XMMATRIX mtxRot = XMMatrixRotationX(XMConvertToRadians(-75.0f));
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 	XMMATRIX mtxWorld = mtxScale *mtxRot * mtxTrans ;
 	ShaderField_SetWorldMatrix(mtxWorld);
@@ -141,6 +141,7 @@ void MeshField_Draw(DirectX::XMFLOAT3 gameobjectPos)
 	ShaderField_SetViewMatrix(XMLoadFloat4x4(&Camera_GetMatrix()));
 	ShaderField_SetProjectionMatrix(XMLoadFloat4x4(&Camera_GetMatrixPerspective()));
 
+	ShaderField_SetColor({ 1.0f, 1.0f, 1.0f,1.0f });
 	// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
 	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
 }

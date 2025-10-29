@@ -93,7 +93,7 @@ void Scene3D_Draw()
 {
 	Light_SetAmbient({ 0.4f,0.4f,0.4f });
 	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
-	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f },1.0f, Camera_GetCameraPos());
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,0.3f },1.0f, Camera_GetCameraPos());
 	//Cube_Draw(g_cubePosition);
 	MeshField_Draw(g_cubePosition);
 	ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });

@@ -1,4 +1,3 @@
-#include "ShaderField.h"
 #include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -6,12 +5,14 @@ using namespace DirectX;
 #include "debug_ostream.h"
 #include <fstream>
 #include "Sampler.h"
+#include "ShaderField.h"
 
 static ID3D11VertexShader* g_pVertexShader = nullptr;
 static ID3D11InputLayout* g_pInputLayout = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer2 = nullptr;
+static ID3D11Buffer* g_pPSConstantBuffer0 = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -118,7 +119,10 @@ bool ShaderField_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext
 		hal::dout << "Shader_Initialize() : ピクセルシェーダーの作成に失敗しました" << std::endl;
 		return false;
 	}
+	// PIXELシェーダー用定数バッファの作成
+	buffer_desc.ByteWidth = sizeof(XMFLOAT4); // バッファのサイズ
 
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer0);
 
 	return true;
 }
@@ -129,6 +133,7 @@ void ShaderField_Finalize()
 	SAFE_RELEASE(g_pVSConstantBuffer0);
 	SAFE_RELEASE(g_pVSConstantBuffer1);
 	SAFE_RELEASE(g_pVSConstantBuffer2);
+	SAFE_RELEASE(g_pPSConstantBuffer0);
 	SAFE_RELEASE(g_pInputLayout);
 	SAFE_RELEASE(g_pVertexShader);
 }
@@ -169,7 +174,10 @@ void ShaderField_SetViewMatrix(const DirectX::XMMATRIX& matrix)
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer1, 0, nullptr, &transpose, 0, 0);
 }
 
-
+void ShaderField_SetColor(const DirectX::XMFLOAT4 color)
+{
+	g_pContext->UpdateSubresource(g_pPSConstantBuffer0, 0, nullptr, &color, 0, 0);
+}
 void ShaderField_Begin()
 {
 	// 頂点シェーダーとピクセルシェーダーを描画パイプラインに設定
@@ -184,5 +192,6 @@ void ShaderField_Begin()
 	g_pContext->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	g_pContext->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
 
+	g_pContext->PSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
 	Sampler_SetFilterAnisotropic();
 }

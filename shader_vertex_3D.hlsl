@@ -20,17 +20,6 @@ cbuffer VS_CONSTANT_BUFFER : register(b3)
 {
     float4x4 projection;
 };
-//cbuffer VS_CONSTANT_BUFFER : register(b4)
-//{
-//    float4 ambient_color;
-//};
-//cbuffer VS_CONSTANT_BUFFER : register(b5)
-//{
-//    float4 directional_world_vector;
-//    float4 directional_color;
-//    float3 eyePosW;
-//    //float gSpecularPower;
-//};
 
 struct VS_OUT
 {
