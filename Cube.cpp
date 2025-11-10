@@ -203,3 +203,11 @@ void Cube_Draw(XMFLOAT3 gameobjectPos)
 	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
 
 }
+
+AABB Cube_GetAABB(const DirectX::XMFLOAT3& position)
+{
+	return {
+		{position.x + 0.5f, position.y + 0.5f,position.z + 0.5f},
+		{position.x - 0.5f, position.y - 0.5f,position.z - 0.5f}
+	};
+}

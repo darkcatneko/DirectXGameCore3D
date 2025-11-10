@@ -17,10 +17,13 @@
 #include "MeshField.h"
 #include "Light.h"
 #include "model.h"
+#include "Player3D.h"
+#include "PlayerCamera.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
 static XMFLOAT3 g_cubePosition;
+static XMFLOAT3 g_meshPosition;
 static XMFLOAT3 g_cubeVelocity;
 
 //Test MODEL
@@ -28,7 +31,8 @@ static MODEL* g_pModelTest = nullptr;
 
 void Scene3D_Initialize(HWND& hWnd)
 {
-	g_cubePosition = { 0.0f,0.5f,0.0f };
+	g_cubePosition = { 5.0f,0.0f,0.0f };
+	g_meshPosition = { -10.0f,-1.5f,-10.0f };
 	switch (g_SceneEnum)
 	{
 	case Scene3D::SCENE_INIT:
@@ -49,8 +53,8 @@ void Scene3D_Initialize(HWND& hWnd)
 		Fade_Initialize();
 		MouseRenderer_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});
-
-		g_pModelTest = ModelLoad("test.fbx",1,false);
+		Player3D_Initialize({ 0,0,0 }, {0,0,1});
+		g_pModelTest = ModelLoad("test.fbx",0.1f,false);
 		break;
 	default:
 		break;
@@ -73,11 +77,12 @@ void Scene3D_Finalize()
 void Scene3D_Update(double time)
 {
 	MouseRenderer_Update(time);
-	HAL_Camera_Movement_Update(time);
-	CameraDragUpdate(time);
+	PlayerCamera_Update(time);
+	//HAL_Camera_Movement_Update(time);
+	//CameraDragUpdate(time);
 	//Camera3D_Update(time);
 	Cube_Update(time);
-
+	Player3D_Update(time);
 	/*if (KeyLogger_IsTrigger(KK_SPACE))
 	{
 		g_cubePosition = Camera_GetCameraPos();
@@ -91,13 +96,21 @@ void Scene3D_Update(double time)
 
 void Scene3D_Draw()
 {
-	Light_SetAmbient({ 0.4f,0.4f,0.4f });
-	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, {1.0f,1.0f,1.0f,1.0f});
-	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,0.3f },1.0f, Camera_GetCameraPos());
-	//Cube_Draw(g_cubePosition);
-	MeshField_Draw(g_cubePosition);
-	ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
-	Grid_Draw();
+	Light_SetAmbient({ 0.3f,0.3f,0.3f });
+	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, {0.4f,0.4f,0.4f,0.3f});
+	Light_SetPointLightCount(1);
+	Light_SetPointLight(0, { 0.0f,0.0f,0.0f }, 30.0f, { 1.0f,0.0f,0.0f });
+	//Light_SetPointLight(1, { 2.0f,10.0f,0.0f}, 0.1f, { 0.0f,1.0f,0.0f });
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f },4.0f, PlayerCamera_GetCameraPos());
+	//Light_SetPointLight(2, { 0.0f,0.0f,2.0f }, 0.1f, { 0.0f,0.0f,1.0f });
+	//ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
+	
+
+	Cube_Draw(g_cubePosition);
+	Player3D_Draw();
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, PlayerCamera_GetCameraPos());
+	MeshField_Draw(g_meshPosition);
+	//Grid_Draw();
 	MouseRenderer_Draw();
 }
 

@@ -161,12 +161,16 @@
   <ItemGroup>
     <ClCompile Include="Camera3D.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="Collision3D.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Game3D.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MeshField.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="Player3D.cpp" />
+    <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene3D.cpp" />
     <ClCompile Include="Shader3D.cpp" />
@@ -196,14 +200,18 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Camera3D.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="Collision3D.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="Game3D.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshField.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="Player3D.h" />
+    <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene3D.h" />
     <ClInclude Include="Shader3D.h" />

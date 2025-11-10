@@ -7,6 +7,7 @@
 #include "Shader3D.h"
 #include "Texture.h"
 #include "Camera3D.h"
+#include "PlayerCamera.h"
 using namespace DirectX;
 
 static constexpr float FIELD_MESH_SIZE = 1.0f;
@@ -124,7 +125,7 @@ void MeshField_Draw(DirectX::XMFLOAT3 gameobjectPos)
 	//world matrix
 	//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
-	XMMATRIX mtxRot = XMMatrixRotationX(XMConvertToRadians(-75.0f));
+	XMMATRIX mtxRot = XMMatrixRotationX(XMConvertToRadians(0.0f));
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 	XMMATRIX mtxWorld = mtxScale *mtxRot * mtxTrans ;
 	ShaderField_SetWorldMatrix(mtxWorld);
@@ -138,8 +139,8 @@ void MeshField_Draw(DirectX::XMFLOAT3 gameobjectPos)
 	float offset_x = FIELD_H_MESH_COUNT * FIELD_MESH_SIZE;
 	float offset_y = FIELD_V_MESH_COUNT * FIELD_MESH_SIZE;
 
-	ShaderField_SetViewMatrix(XMLoadFloat4x4(&Camera_GetMatrix()));
-	ShaderField_SetProjectionMatrix(XMLoadFloat4x4(&Camera_GetMatrixPerspective()));
+	ShaderField_SetViewMatrix(XMLoadFloat4x4(&PlayerCamera_GetMatrix()));
+	ShaderField_SetProjectionMatrix(XMLoadFloat4x4(&PlayerCamera_GetMatrixPerspective()));
 
 	ShaderField_SetColor({ 1.0f, 1.0f, 1.0f,1.0f });
 	// É|ÉäÉSÉìï`âÊñΩóﬂî≠çs
