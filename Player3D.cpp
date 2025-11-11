@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "PlayerCamera.h"
 #include "DirectXMath.h"
+#include "Map.h"
 #include "Cube.h"
 using namespace DirectX;
 
@@ -21,7 +22,7 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad("KUMA.fbx", 0.1f,false);
+	g_pPlayerModel = ModelLoad("test.fbx", 0.1f,false);
 }
 
 void Player3D_Finalize()
@@ -42,30 +43,35 @@ void  Player3D_Update(double elapsed_time)
 
 	//重力落下
 	DirectX::XMVECTOR gdir{ 0.0f,1.0f,0.0f };
-	player_velocity += gdir * -9.8f * 1.0f * static_cast<float>(elapsed_time);
+	player_velocity += gdir * -9.8f * 1.0f * (float)(elapsed_time);
 	gravity_velocity = player_velocity * (float)elapsed_time;
 	player_pos += gravity_velocity;
 
 	DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
 	AABB player = GetPlayer_AABB();
-	AABB cube = Cube_GetAABB({ 5.0f,0.0f,0.0f });
-
-	//被重力拖的物件有被撞到嗎
-	Hit hit = Collision_IsHitAABB(cube, player);
-	if (hit.isHit)
+	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
-		if (hit.normal.y > 0.0f)
+
+		AABB cube = Cube_GetAABB(Map_GetObjects(i)->Position);
+
+		//被重力拖的物件有被撞到嗎
+		Hit hit = Collision_IsHitAABB(cube, player);
+		if (hit.isHit)
 		{
-			//player_pos -= gravity_velocity;
-			XMVectorSetY(player_pos, cube.max.y);
-			player_velocity *= { 1.0f, 0.0f, 1.0f};
-			g_IsJump = false;
+			if (hit.normal.y > 0.0f)
+			{
+				//player_pos -= gravity_velocity;
+				player_pos = XMVectorSetY(player_pos, cube.max.y+0.5f);
+				player_velocity *= { 1.0f, 0.0f, 1.0f};
+				g_IsJump = false;
+			}
 		}
 	}
+	
 	//有撞到地面嗎
-	else if (DirectX::XMVectorGetY(player_pos) < 0.0f)
+	if (DirectX::XMVectorGetY(player_pos) <= 0.0f)
 	{
-		player_pos -= gravity_velocity;
+		player_pos = XMVectorSetY(player_pos, 0.0f);
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
 		g_IsJump = false;
 	}
@@ -91,22 +97,7 @@ void  Player3D_Update(double elapsed_time)
 	if (KeyLogger_IsPressed(KK_A)) {
 		direction -= DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
 	}
-	/*if (XMVectorGetX( XMVector3LengthSq(direction))>0.0f)
-	{
-		direction = XMVector3Normalize(direction);
-		XMMATRIX r;
-		if (XMVectorGetY(XMVector3Cross(XMLoadFloat3(&g_PlayerFront),direction))<0.0f)
-		{
-			r = XMMatrixRotationY(XMConvertToRadians(1.0f));
-		}
-		else
-		{
-			r = XMMatrixRotationY(XMConvertToRadians(-1.0f));
-		}
-		front = XMVector3TransformNormal(XMLoadFloat3(&g_PlayerFront), r);
-		player_velocity += front * (float)2000.0/50.0* elapsed_time;
-		XMStoreFloat3(&g_PlayerFront,front);
-	}*/
+
 
 	direction = DirectX::XMVector3Normalize(direction);
 
@@ -115,31 +106,44 @@ void  Player3D_Update(double elapsed_time)
 	player_velocity += -player_velocity *(float)(4.0*elapsed_time);
 	player_pos += player_velocity * (float)elapsed_time;
 
-
-	DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
-	DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
-
-	//撞擊判定
-	player = GetPlayer_AABB();
-	cube = Cube_GetAABB({ 5.0f,0.0f,0.0f });
-	if (hit.isHit)
+	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
-		if (hit.normal.x > 0.0f)
+		AABB cube = Cube_GetAABB(Map_GetObjects(i)->Position);
+		Hit hit = Collision_IsHitAABB(cube, player);
+		//撞擊判定
+		if (hit.isHit)
 		{
-			//player_pos -= gravity_velocity;
-			XMVectorSetX(player_pos, cube.max.x +1.0f);
-			player_velocity *= { 0.0f, 1.0f, 1.0f};
+			if (hit.normal.x > 0.0f)
+			{
+				//player_pos -= gravity_velocity;
+				player_pos = XMVectorSetX(player_pos, cube.max.x + 0.5f);
+				player_velocity *= { 0.0f, 1.0f, 1.0f};
+			}
+			else if (hit.normal.x < 0.0f)
+			{
+				player_pos = XMVectorSetX(player_pos, cube.min.x - 0.5f);
+				player_velocity *= { 0.0f, 1.0f, 1.0f};
+			}
+			else if (hit.normal.y < 0.0f)
+			{
+				player_pos = XMVectorSetY(player_pos, cube.min.y - 0.5f);
+				player_velocity *= { 1.0f, 0.0f, 1.0f};
+			}
+			else if (hit.normal.z > 0.0f)
+			{
+				player_pos = XMVectorSetZ(player_pos, cube.max.z + 0.5f);
+				player_velocity *= { 1.0f, 1.0f, 0.0f};
+			}
+			else if (hit.normal.z < 0.0f)
+			{
+				player_pos = XMVectorSetZ(player_pos, cube.min.z - 0.5f);
+				player_velocity *= { 1.0f, 1.0f, 0.0f};
+			}
 		}
-		else if (hit.normal.x < 0.0f)
-		{
-			XMVectorSetX(player_pos, cube.min.x-1.0f);
-			player_velocity *= { 0.0f, 1.0f, 1.0f};
-		}
+
+		DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
+		DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
 	}
-
-	DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
-	DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
-
 }
 
 void Player3D_Draw()
@@ -151,7 +155,8 @@ void Player3D_Draw()
 		g_PlayerPosition.z
 	);
 	ModelDraw(g_pPlayerModel, g_PlayerPosition);
-	Cube_Draw(g_PlayerPosition);
+	Map_Draw();
+	//Cube_Draw(g_PlayerPosition);
 }
 
 const DirectX::XMFLOAT3& GetPlayerPosition()

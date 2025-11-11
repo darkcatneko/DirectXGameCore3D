@@ -167,6 +167,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Map.cpp" />
     <ClCompile Include="MeshField.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="Player3D.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="MeshField.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="Player3D.h" />

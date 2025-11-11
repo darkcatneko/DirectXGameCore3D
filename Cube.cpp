@@ -190,7 +190,7 @@ void Cube_Draw(XMFLOAT3 gameobjectPos)
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
 	XMMATRIX mtxRot = XMMatrixRotationY(g_rotate);
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	XMMATRIX mtxWorld = mtxTrans * mtxRot * mtxScale;
+	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
 	Shader3D_SetWorldMatrix(mtxWorld);
 
 

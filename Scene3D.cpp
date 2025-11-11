@@ -19,6 +19,7 @@
 #include "model.h"
 #include "Player3D.h"
 #include "PlayerCamera.h"
+#include "Map.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -53,7 +54,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Fade_Initialize();
 		MouseRenderer_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});
-		Player3D_Initialize({ 0,0,0 }, {0,0,1});
+		Player3D_Initialize({ 10,0,0 }, {0,0,1});
 		g_pModelTest = ModelLoad("test.fbx",0.1f,false);
 		break;
 	default:
