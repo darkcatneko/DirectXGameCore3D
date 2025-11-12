@@ -52,16 +52,16 @@ void  Player3D_Update(double elapsed_time)
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
 
-		AABB cube = Cube_GetAABB(Map_GetObjects(i)->Position);
+		AABB Object = Map_GetObjects(i)->Collision;
 
 		//被重力拖的物件有被撞到嗎
-		Hit hit = Collision_IsHitAABB(cube, player);
+		Hit hit = Collision_IsHitAABB(Object, player);
 		if (hit.isHit)
 		{
 			if (hit.normal.y > 0.0f)
 			{
 				//player_pos -= gravity_velocity;
-				player_pos = XMVectorSetY(player_pos, cube.max.y+0.5f);
+				player_pos = XMVectorSetY(player_pos, Object.max.y+0.5f);
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 				g_IsJump = false;
 			}
@@ -108,35 +108,35 @@ void  Player3D_Update(double elapsed_time)
 
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
-		AABB cube = Cube_GetAABB(Map_GetObjects(i)->Position);
-		Hit hit = Collision_IsHitAABB(cube, player);
+		AABB Object = Cube_GetAABB(Map_GetObjects(i)->Position);
+		Hit hit = Collision_IsHitAABB(Object, player);
 		//撞擊判定
 		if (hit.isHit)
 		{
 			if (hit.normal.x > 0.0f)
 			{
 				//player_pos -= gravity_velocity;
-				player_pos = XMVectorSetX(player_pos, cube.max.x + 0.5f);
+				player_pos = XMVectorSetX(player_pos, Object.max.x + 0.5f);
 				player_velocity *= { 0.0f, 1.0f, 1.0f};
 			}
 			else if (hit.normal.x < 0.0f)
 			{
-				player_pos = XMVectorSetX(player_pos, cube.min.x - 0.5f);
+				player_pos = XMVectorSetX(player_pos, Object.min.x - 0.5f);
 				player_velocity *= { 0.0f, 1.0f, 1.0f};
 			}
 			else if (hit.normal.y < 0.0f)
 			{
-				player_pos = XMVectorSetY(player_pos, cube.min.y - 0.5f);
+				player_pos = XMVectorSetY(player_pos, Object.min.y - 0.5f);
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 			}
 			else if (hit.normal.z > 0.0f)
 			{
-				player_pos = XMVectorSetZ(player_pos, cube.max.z + 0.5f);
+				player_pos = XMVectorSetZ(player_pos, Object.max.z + 0.5f);
 				player_velocity *= { 1.0f, 1.0f, 0.0f};
 			}
 			else if (hit.normal.z < 0.0f)
 			{
-				player_pos = XMVectorSetZ(player_pos, cube.min.z - 0.5f);
+				player_pos = XMVectorSetZ(player_pos, Object.min.z - 0.5f);
 				player_velocity *= { 1.0f, 1.0f, 0.0f};
 			}
 		}
@@ -175,4 +175,12 @@ AABB GetPlayer_AABB()
 		{g_PlayerPosition.x + 0.5f, g_PlayerPosition.y + 0.5f,g_PlayerPosition.z + 0.5f},
 		{g_PlayerPosition.x - 0.5f, g_PlayerPosition.y - 0.5f ,g_PlayerPosition.z - 0.5f}
 	};
+}
+
+AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
+{
+	AABB aabb;
+	XMStoreFloat3(&aabb.min, position - XMVECTOR{ 0.5f,0.5f,0.5f });
+	XMStoreFloat3(&aabb.max, position + XMVECTOR{ 0.5f,0.5f,0.5f });
+	return aabb;
 }

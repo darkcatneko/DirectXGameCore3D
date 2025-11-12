@@ -50,7 +50,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-
+		Map_Initialize();
 		Fade_Initialize();
 		MouseRenderer_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});

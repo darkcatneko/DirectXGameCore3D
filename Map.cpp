@@ -5,20 +5,24 @@ using namespace DirectX;
 
 static MapObject g_MapObjects[]
 {
-	{1,{ 0.0f,0.5f,0.0f}},
-	{1,{ 1.0f,0.5f,0.0f}},
-	{1,{-1.0f,0.5f,0.0f}},
-	{1,{ 0.0f,0.5f,1.0f}},
-	{1,{ 1.0f,0.5f,1.0f}},
-	{1,{-1.0f,0.5f,1.0f}},
-	{1,{ 0.0f,0.5f,2.0f}},
-	{1,{ 1.0f,0.5f,2.0f}},
-	{1,{-1.0f,0.5f,2.0f}},
+	{1,{ 0.0f,0.0f,0.0f}},
+	{1,{ 1.0f,0.0f,0.0f}},
+	{1,{-1.0f,0.0f,0.0f}},
+	{1,{ 0.0f,0.0f,1.0f}},
+	{1,{ 1.0f,0.0f,1.0f}},
+	{1,{-1.0f,0.0f,1.0f}},
+	{1,{ 0.0f,0.0f,2.0f}},
+	{1,{ 1.0f,0.0f,2.0f}},
+	{1,{-1.0f,0.0f,2.0f}},
 	{1,{-1.0f,1.5f,2.0f}},
 	{1,{0.0f,1.5f,-1.0f}},
 };
 void Map_Initialize()
 {
+	for (MapObject& o : g_MapObjects)
+	{
+		o.Collision = Cube_GetAABB(o.Position);
+	}
 }
 
 void Map_Finitialize()

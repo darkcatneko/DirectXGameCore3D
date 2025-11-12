@@ -1,11 +1,13 @@
 #ifndef MAP_H
 #define MAP_H
 #include "DirectXMath.h"
+#include "Collision3D.h"
 
 struct MapObject
 {
 	int KindId;
 	DirectX::XMFLOAT3 Position;
+	AABB Collision;
 };
 
 void Map_Initialize();

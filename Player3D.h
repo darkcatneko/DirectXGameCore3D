@@ -11,4 +11,5 @@ void Player3D_Draw();
 const DirectX::XMFLOAT3& GetPlayerPosition();
 const DirectX::XMFLOAT3& GetPlayerFront();
 AABB GetPlayer_AABB();
+AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position);
 #endif

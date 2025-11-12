@@ -7,11 +7,12 @@
 #include "direct3d.h"
 #include "Player3D.h"
 
-namespace {
-	DirectX::XMFLOAT3 g_CameraFront = { 0.0f, 0.0f, 1.0f };
-	DirectX::XMFLOAT3 g_CameraPosition = { 0.0f, 0.0f, 0.0f };
-	static DirectX::XMFLOAT4X4 g_CameraMatrix;
-	static DirectX::XMFLOAT4X4 g_CameraMatrix_Perspective;
+namespace 
+{
+	DirectX::XMFLOAT3 g_PlayerCameraFront = { 0.0f, 0.0f, 1.0f };
+	DirectX::XMFLOAT3 g_PlayerCameraPosition = { 0.0f, 0.0f, 0.0f };
+	static DirectX::XMFLOAT4X4 g_PlayerCameraMatrix;
+	static DirectX::XMFLOAT4X4 g_PlayerCameraMatrix_Perspective;
 }
 
 
@@ -36,8 +37,8 @@ void PlayerCamera_Update(double elapsed_time)
 	DirectX::XMVECTOR front = DirectX::XMVector3Normalize(
 		DirectX::XMVectorSubtract(target, position)
 	);
-	DirectX::XMStoreFloat3(&g_CameraPosition, position);
-	DirectX::XMStoreFloat3(&g_CameraFront, front);
+	DirectX::XMStoreFloat3(&g_PlayerCameraPosition, position);
+	DirectX::XMStoreFloat3(&g_PlayerCameraFront, front);
 
 
 	DirectX::XMMATRIX mtxView = DirectX::XMMatrixLookAtLH(
@@ -45,7 +46,7 @@ void PlayerCamera_Update(double elapsed_time)
 		target,
 		{ 0.0f,1.0f,0.0f });
 
-	DirectX::XMStoreFloat4x4(&g_CameraMatrix, mtxView);
+	DirectX::XMStoreFloat4x4(&g_PlayerCameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
 
 	constexpr float fovAngleY = DirectX::XMConvertToRadians(60.0f);
@@ -60,28 +61,28 @@ void PlayerCamera_Update(double elapsed_time)
 		farZ
 	);
 
-	XMStoreFloat4x4(&g_CameraMatrix_Perspective, mtxPerspective);
+	XMStoreFloat4x4(&g_PlayerCameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& PlayerCamera_GetMatrix()
 {
-	return g_CameraMatrix;
+	return g_PlayerCameraMatrix;
 }
 
 DirectX::XMFLOAT4X4& PlayerCamera_GetMatrixPerspective()
 {
-	return g_CameraMatrix_Perspective;
+	return g_PlayerCameraMatrix_Perspective;
 }
 
 const DirectX::XMFLOAT3 PlayerCamera_GetFrontVector()
 {
-	return g_CameraFront;
+	return g_PlayerCameraFront;
 }
 
 const DirectX::XMFLOAT3 PlayerCamera_GetCameraPos()
 {
-	return g_CameraPosition;
+	return g_PlayerCameraPosition;
 }
 
 
