@@ -32,7 +32,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	model->VertexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];
 	model->IndexBuffer = new ID3D11Buffer*[model->AiScene->mNumMeshes];
 
-
+	
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
 	{
 		aiMesh* mesh = model->AiScene->mMeshes[m];
@@ -54,6 +54,20 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 				}
 				vertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 				vertex[v].texcoord = XMFLOAT2(mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y);
+				if (v==0)
+				{
+					model->Local.min = vertex[v].position;
+					model->Local.max = vertex[v].position;
+				}
+				else
+				{
+					model->Local.min.x = std::min(model->Local.min.x, vertex[v].position.x);
+					model->Local.min.y = std::min(model->Local.min.y, vertex[v].position.y);
+					model->Local.min.z = std::min(model->Local.min.z, vertex[v].position.z);
+					model->Local.max.x = std::max(model->Local.max.x, vertex[v].position.x);
+					model->Local.max.y = std::max(model->Local.max.y, vertex[v].position.y);
+					model->Local.max.z = std::max(model->Local.max.z, vertex[v].position.z);
+				}
 			}
 
 			D3D11_BUFFER_DESC bd;

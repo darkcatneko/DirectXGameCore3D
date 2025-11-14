@@ -159,6 +159,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Billboard.cpp" />
+    <ClCompile Include="Bullet3D.cpp" />
     <ClCompile Include="Camera3D.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Collision3D.cpp" />
@@ -190,6 +192,7 @@
     <ClCompile Include="NekoTool.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ShaderField.cpp" />
+    <ClCompile Include="Shader_Billboard.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sprite_anim.cpp" />
     <ClCompile Include="system_timer.cpp" />
@@ -198,6 +201,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h" />
+    <ClInclude Include="Billboard.h" />
+    <ClInclude Include="Bullet3D.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Camera3D.h" />
     <ClInclude Include="Collision.h" />
@@ -228,6 +233,7 @@
     <ClInclude Include="NekoTool.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShaderField.h" />
+    <ClInclude Include="Shader_Billboard.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sprite_anim.h" />
     <ClInclude Include="system_timer.h" />
@@ -237,6 +243,7 @@
   <ItemGroup>
     <FxCompile Include="shader_pixel_2d.hlsl" />
     <FxCompile Include="shader_pixel_3D.hlsl" />
+    <FxCompile Include="Shader_Pixel_Billboard.hlsl" />
     <FxCompile Include="shader_pixel_Field.hlsl" />
     <FxCompile Include="shader_vertex_2d.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -245,6 +252,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="shader_vertex_3D.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader_Vertex_Billboard.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>

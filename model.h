@@ -9,6 +9,7 @@
 #include "assimp/matrix4x4.h"
 #include "DirectXMath.h"
 #pragma comment (lib, "assimp-vc143-mt.lib")
+#include "Collision3D.h"
 
 
 
@@ -20,6 +21,8 @@ struct MODEL
 	ID3D11Buffer** IndexBuffer;
 
 	std::unordered_map<std::string, ID3D11ShaderResourceView*> Texture;
+
+	AABB Local;
 };
 
 

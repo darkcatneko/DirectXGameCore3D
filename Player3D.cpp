@@ -4,9 +4,11 @@
 #include "Light.h"
 #include "camera.h"
 #include "PlayerCamera.h"
+#include "Camera3D.h"
 #include "DirectXMath.h"
 #include "Map.h"
 #include "Cube.h"
+#include "Bullet3D.h"
 using namespace DirectX;
 
 namespace {
@@ -22,7 +24,7 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad("test.fbx", 0.1f,false);
+	g_pPlayerModel = ModelLoad("KIRBY.fbx", 0.1f, false);
 }
 
 void Player3D_Finalize()
@@ -61,13 +63,13 @@ void  Player3D_Update(double elapsed_time)
 			if (hit.normal.y > 0.0f)
 			{
 				//player_pos -= gravity_velocity;
-				player_pos = XMVectorSetY(player_pos, Object.max.y+0.5f);
+				player_pos = XMVectorSetY(player_pos, Object.max.y + 0.5f);
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 				g_IsJump = false;
 			}
 		}
 	}
-	
+
 	//有撞到地面嗎
 	if (DirectX::XMVectorGetY(player_pos) <= 0.0f)
 	{
@@ -76,25 +78,25 @@ void  Player3D_Update(double elapsed_time)
 		g_IsJump = false;
 	}
 
-	
+
 
 
 	DirectX::XMVECTOR direction{};
-	DirectX::XMVECTOR front = DirectX::XMLoadFloat3(&GetPlayerFront()) * XMVECTOR{1,0,1};
+	DirectX::XMVECTOR front = DirectX::XMLoadFloat3(&GetPlayerFront()) * XMVECTOR { 1, 0, 1 };
 
-	if (KeyLogger_IsPressed(KK_W)) {
+	if (KeyLogger_IsPressed(KK_I)) {
 		direction += front;
 	}
 
-	if (KeyLogger_IsPressed(KK_S)) {
+	if (KeyLogger_IsPressed(KK_K)) {
 		direction -= front;
 	}
 
-	if (KeyLogger_IsPressed(KK_D)) {
+	if (KeyLogger_IsPressed(KK_L)) {
 		direction += DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
 	}
 
-	if (KeyLogger_IsPressed(KK_A)) {
+	if (KeyLogger_IsPressed(KK_J)) {
 		direction -= DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
 	}
 
@@ -103,7 +105,7 @@ void  Player3D_Update(double elapsed_time)
 
 	player_velocity += direction * (float)(2000.0 / 50.0 * elapsed_time);
 
-	player_velocity += -player_velocity *(float)(4.0*elapsed_time);
+	player_velocity += -player_velocity * (float)(4.0 * elapsed_time);
 	player_pos += player_velocity * (float)elapsed_time;
 
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
@@ -144,11 +146,15 @@ void  Player3D_Update(double elapsed_time)
 		DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
 		DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
 	}
+	if (KeyLogger_IsTrigger(KK_SPACE))
+	{
+		Bullet3D_CreateBullet(g_PlayerPosition, g_PlayerFront);
+	}
 }
 
 void Player3D_Draw()
 {
-	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,0.1f }, 10.0f, PlayerCamera_GetCameraPos());//镜面反射光
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,0.1f }, 10.0f, Camera_GetCameraPos());//镜面反射光
 	DirectX::XMMATRIX world = DirectX::XMMatrixTranslation(
 		g_PlayerPosition.x,
 		g_PlayerPosition.y,
@@ -164,7 +170,7 @@ const DirectX::XMFLOAT3& GetPlayerPosition()
 	return g_PlayerPosition;
 }
 
-const DirectX::XMFLOAT3 &GetPlayerFront()
+const DirectX::XMFLOAT3& GetPlayerFront()
 {
 	return g_PlayerFront;
 }

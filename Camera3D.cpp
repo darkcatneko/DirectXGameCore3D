@@ -5,8 +5,16 @@
 #include "Key_Logger.h"
 #include "debug_text.h"
 #include "mouse.h"
+#include "PlayerCamera.h"
+#include "Shader_Billboard.h"
 using namespace DirectX;
 
+enum CameraControlStatus
+{
+	PlayerFollow,
+	Free,
+};
+static CameraControlStatus g_cameraControlStatus;
 
 static XMFLOAT3 Camera3D_Pos;
 static XMFLOAT3 Camera3D_AimPos;
@@ -28,6 +36,7 @@ static XMFLOAT2 g_MousePrevDragPosition;
 float now_angle;
 void Camera3D_Initialize(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& front, const DirectX::XMFLOAT3& right)
 {
+	g_cameraControlStatus = PlayerFollow;
 	Camera3D_Pos = { 2.0f, 2.0f, -5.0f };
 	Camera3D_AimPos = { 0,0,0 };
 
@@ -47,171 +56,32 @@ void Camera3D_Finitialize()
 
 void Camera3D_Update(double elapsed_time)
 {
-	if (KeyLogger_IsPressed(KK_J))
+	switch (g_cameraControlStatus)
 	{
-		Camera3D_Pos.x -= elapsed_time * 3.0f;
-		Camera3D_AimPos.x -= elapsed_time * 3.0f;
+	case PlayerFollow:
+		PlayerCamera_Update(elapsed_time);
+		break;
+	case Free:
+		HAL_Camera_Movement_Update(elapsed_time);
+		CameraDragUpdate(elapsed_time);
+		break;
+	default:
+		break;
 	}
-	if (KeyLogger_IsPressed(KK_L))
+	if (KeyLogger_IsTrigger(KK_P))
 	{
-		Camera3D_Pos.x += elapsed_time * 3.0f;
-		Camera3D_AimPos.x += elapsed_time * 3.0f;
-	}
-	if (KeyLogger_IsPressed(KK_I))
-	{
-		Camera3D_Pos.y += elapsed_time * 3.0f;
-		Camera3D_AimPos.y += elapsed_time * 3.0f;
-	}
-	if (KeyLogger_IsPressed(KK_K))
-	{
-		Camera3D_Pos.y -= elapsed_time * 3.0f;
-		Camera3D_AimPos.y -= elapsed_time * 3.0f;
-	}
-	if (KeyLogger_IsPressed(KK_Y))
-	{
-		Camera3D_Pos.z += elapsed_time * 3.0f;
-		Camera3D_AimPos.z += elapsed_time * 3.0f;
-	}
-	if (KeyLogger_IsPressed(KK_H))
-	{
-		Camera3D_Pos.z -= elapsed_time * 3.0f;
-		Camera3D_AimPos.z -= elapsed_time * 3.0f;
-	}
-	if (KeyLogger_IsPressed(KK_O))
-	{
-		// 1. 轉成向量
-		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
-		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
-
-		// 2. 計算方向向量 (Aim - Pos)
-		XMVECTOR dir = aimPos - camPos;
-
-		// 3. 建立繞 Y 軸的旋轉 quaternion
-		constexpr float angle = XMConvertToRadians(1.0f); // 每次按下旋轉 1 度，可調
-		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), angle);
-
-		// 4. 旋轉方向向量
-		dir = XMVector3Rotate(dir, qRot);
-
-		// 5. 新的 Aim = 相機位置 + 旋轉後的方向
-		aimPos = camPos + dir;
-
-		// 6. 存回
-		DirectX::XMStoreFloat3(&Camera3D_AimPos, aimPos);
-	}
-	if (KeyLogger_IsPressed(KK_U))
-	{
-		// 1. 轉成向量
-		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
-		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
-
-		// 2. 計算方向向量 (Aim - Pos)
-		XMVECTOR dir = aimPos - camPos;
-
-		// 3. 建立繞 Y 軸的旋轉 quaternion
-		constexpr float angle = XMConvertToRadians(-1.0f); // 每次按下旋轉 1 度，可調
-
-		XMVECTOR qRot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), angle);
-
-		// 4. 旋轉方向向量
-		dir = XMVector3Rotate(dir, qRot);
-
-		// 5. 新的 Aim = 相機位置 + 旋轉後的方向
-		aimPos = camPos + dir;
-
-		// 6. 存回
-		DirectX::XMStoreFloat3(&Camera3D_AimPos, aimPos);
-	}
-	if (KeyLogger_IsPressed(KK_R))
-	{
-		// 1) 載入
-		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
-		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
-
-		// 2) forward
-		XMVECTOR fwd = XMVector3Normalize(aimPos - camPos);
-
-		// 3) 算 Right = normalize( cross(WorldUp, forward) )
-		//    這樣 Pitch 會以相機自身的右側為軸來抬頭/低頭7
-		const XMVECTOR WORLD_UP = XMVectorSet(0, 1, 0, 0);
-		XMVECTOR right = XMVector3Normalize(XMVector3Cross(WORLD_UP, fwd));
-
-		// 4) 繞 Right 軸旋轉（上下看）
-		float deg = 1.0f; // 每次按鍵旋轉角度
-		float rad = XMConvertToRadians(deg);
-		XMVECTOR qPitch = XMQuaternionRotationAxis(right, rad);
-
-		// 5) 旋轉 forward
-		XMVECTOR newFwd = XMVector3Normalize(XMVector3Rotate(fwd, qPitch));
-
-		// （可選）避免翻轉：限制抬頭/低頭過度接近 90°
-		// 若 dot(newFwd, WORLD_UP) 絕對值太大，代表快翻過頭了，就略過本次旋轉
-		float cosLimit = 0.99f; // 越接近 1 限制越嚴
-		float upDot = XMVectorGetX(XMVector3Dot(newFwd, WORLD_UP));
-		if (fabsf(upDot) < cosLimit) {
-			fwd = newFwd;
+		switch (g_cameraControlStatus)
+		{
+		case PlayerFollow:
+			g_cameraControlStatus = Free;
+			break;
+		case Free:
+			g_cameraControlStatus = PlayerFollow;
+			break;
+		default:
+			break;
 		}
-
-		// 6) 維持原本目標距離
-		float dist = XMVectorGetX(XMVector3Length(aimPos - camPos));
-		aimPos = camPos + fwd * dist;
-
-		// 7) 存回
-		DirectX::XMStoreFloat3(&Camera3D_AimPos, aimPos);
 	}
-	if (KeyLogger_IsPressed(KK_F))
-	{
-		// 1) 載入
-		XMVECTOR camPos = XMLoadFloat3(&Camera3D_Pos);
-		XMVECTOR aimPos = XMLoadFloat3(&Camera3D_AimPos);
-
-		// 2) forward
-		XMVECTOR fwd = XMVector3Normalize(aimPos - camPos);
-
-		// 3) 算 Right = normalize( cross(WorldUp, forward) )
-		//    這樣 Pitch 會以相機自身的右側為軸來抬頭/低頭
-		const XMVECTOR WORLD_UP = XMVectorSet(0, 1, 0, 0);
-		XMVECTOR right = XMVector3Normalize(XMVector3Cross(WORLD_UP, fwd));
-
-		// 4) 繞 Right 軸旋轉（上下看）
-		float deg = -1.0f; // 每次按鍵旋轉角度
-		float rad = XMConvertToRadians(deg);
-		XMVECTOR qPitch = XMQuaternionRotationAxis(right, rad);
-
-		// 5) 旋轉 forward
-		XMVECTOR newFwd = XMVector3Normalize(XMVector3Rotate(fwd, qPitch));
-
-		// （可選）避免翻轉：限制抬頭/低頭過度接近 90°
-		// 若 dot(newFwd, WORLD_UP) 絕對值太大，代表快翻過頭了，就略過本次旋轉
-		float cosLimit = 0.99f; // 越接近 1 限制越嚴
-		float upDot = XMVectorGetX(XMVector3Dot(newFwd, WORLD_UP));
-		if (fabsf(upDot) < cosLimit) {
-			fwd = newFwd;
-		}
-
-		// 6) 維持原本目標距離
-		float dist = XMVectorGetX(XMVector3Length(aimPos - camPos));
-		aimPos = camPos + fwd * dist;
-
-		// 7) 存回
-		DirectX::XMStoreFloat3(&Camera3D_AimPos, aimPos);
-	}
-	//view matrix
-	XMMATRIX mtxView = XMMatrixLookAtLH(
-		{ Camera3D_Pos.x, Camera3D_Pos.y, Camera3D_Pos.z },
-		{ Camera3D_AimPos.x, Camera3D_AimPos.y, Camera3D_AimPos.z },
-		{ 0.0f, 1.0f, 0.0f });
-	Shader3D_SetViewMatrix(mtxView);
-
-	//Perspective array
-	//NearZ一定要大于0 是距离
-	constexpr float fovAngleY = XMConvertToRadians(60.0f);
-	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
-	float nearZ = 0.1f;
-	float farZ = 100.0f;
-	XMMATRIX mtxPerspective = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, nearZ, farZ);
-
-	Shader3D_SetProjectionMatrix(mtxPerspective);
 }
 
 void HAL_Camera_Movement_Update(float time)
@@ -308,6 +178,7 @@ void HAL_Camera_Movement_Update(float time)
 	);
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
+	Shader_Billboard_SetViewMatrix(mtxView);
 
 	//constexpr float fovAngleY = XMConvertToRadians(60.0f);
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
@@ -317,25 +188,60 @@ void HAL_Camera_Movement_Update(float time)
 
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
+	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& Camera_GetMatrix()
 {
-	return g_CameraMatrix;
+	switch (g_cameraControlStatus)
+	{
+	case PlayerFollow:
+		return PlayerCamera_GetMatrix();
+	case Free:
+		return g_CameraMatrix;
+	default:
+		break;
+	}
 }
 
 DirectX::XMFLOAT4X4& Camera_GetMatrixPerspective()
 {
+	switch (g_cameraControlStatus)
+	{
+	case PlayerFollow:
+		return PlayerCamera_GetMatrixPerspective();
+	case Free:
 	return g_CameraMatrix_Perspective;
+		
+	default:
+		break;
+	}
 }
 
 DirectX::XMFLOAT3 Camera_GetFrontVector()
 {
-	return g_CameraFront;
+	switch (g_cameraControlStatus)
+	{
+	case PlayerFollow:
+		return PlayerCamera_GetFrontVector();
+	case Free:
+		return g_CameraFront;
+	default:
+		break;
+	}
 }
 DirectX::XMFLOAT3 Camera_GetCameraPos()
 {
+	switch (g_cameraControlStatus)
+	{
+	case PlayerFollow:
+		PlayerCamera_GetCameraPos();
+		break;
+	case Free:
 	return g_CameraPosition;
+	default:
+		break;
+	}
 }
 
 float Camera_GetFov()
@@ -392,6 +298,7 @@ void CameraDragUpdate(float time)
 	);
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
+	Shader_Billboard_SetViewMatrix(mtxView);
 	
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
 	float nearZ = 0.1f;
@@ -400,4 +307,5 @@ void CameraDragUpdate(float time)
 
 	DirectX::XMStoreFloat4x4(&g_CameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
+	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 }

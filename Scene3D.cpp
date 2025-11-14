@@ -20,6 +20,9 @@
 #include "Player3D.h"
 #include "PlayerCamera.h"
 #include "Map.h"
+#include "Bullet3D.h"
+#include "Billboard.h"
+#include "Shader_Billboard.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -30,10 +33,12 @@ static XMFLOAT3 g_cubeVelocity;
 //Test MODEL
 static MODEL* g_pModelTest = nullptr;
 
+static int texid;
+
 void Scene3D_Initialize(HWND& hWnd)
 {
 	g_cubePosition = { 5.0f,0.0f,0.0f };
-	g_meshPosition = { -10.0f,-1.5f,-10.0f };
+	g_meshPosition = { 0.0f,0.0f,0.0f };
 	switch (g_SceneEnum)
 	{
 	case Scene3D::SCENE_INIT:
@@ -42,20 +47,24 @@ void Scene3D_Initialize(HWND& hWnd)
 		Mouse_Initialize(hWnd);
 		Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Shader_Billboard_Initialize();
 		Sampler_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-		
+
 		Cube_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Light_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		MeshField_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Grid_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Sprite_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Map_Initialize();
+		Billboard_Initialize();
+		Bullet3D_Initialize();
 		Fade_Initialize();
 		MouseRenderer_Initialize();
-		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f});
-		Player3D_Initialize({ 10,0,0 }, {0,0,1});
-		g_pModelTest = ModelLoad("test.fbx",0.1f,false);
+		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, { 0.0f,0.0f,1.0f }, { 1.0f,0.0f,0.0f });
+		Player3D_Initialize({ 10,0,0 }, { 0,0,1 });
+		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
+		texid = Texture_Load(L"Grass.png");
 		break;
 	default:
 		break;
@@ -73,45 +82,53 @@ void Scene3D_Finalize()
 	UninitAudio();
 	SpriteAnim_Finitialize();
 	Sampler_Finalize();
+	Bullet3D_Finitialize();
 }
 
 void Scene3D_Update(double time)
 {
 	MouseRenderer_Update(time);
-	PlayerCamera_Update(time);
-	//HAL_Camera_Movement_Update(time);
-	//CameraDragUpdate(time);
-	//Camera3D_Update(time);
-	Cube_Update(time);
-	Player3D_Update(time);
-	/*if (KeyLogger_IsTrigger(KK_SPACE))
-	{
-		g_cubePosition = Camera_GetCameraPos();
-	}
 
-	XMFLOAT3 cube_velocity = Camera_GetFrontVector();
-	XMVECTOR cube_position = XMLoadFloat3(&g_cubePosition);
-	cube_position += XMLoadFloat3(&cube_velocity) * time * 20.0f;
-	XMStoreFloat3(&g_cubePosition, cube_position);*/
+	Camera3D_Update(time);
+
+	Cube_Update(time);
+
+	Player3D_Update(time);
+
+	Bullet3D_Update(time);
+	for (int i = 0; i < Map_GetObjectsCount(); i++)
+	{
+		for (int j = 0; j < Bullet3D_GetObjectsCount(); j++)
+		{
+			AABB bullet = Bullet_GetAABB(j);
+			AABB object = Map_GetObjects(i)->Collision;
+			if (Collision_IsOverlapAABB(bullet, object))
+			{
+				Bullet3D_Destroy(j);
+			}
+		}
+	}
 }
 
 void Scene3D_Draw()
 {
 	Light_SetAmbient({ 0.3f,0.3f,0.3f });
-	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, {0.4f,0.4f,0.4f,0.3f});
+	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, { 0.4f,0.4f,0.4f,0.3f });
 	Light_SetPointLightCount(1);
 	Light_SetPointLight(0, { 0.0f,0.0f,0.0f }, 30.0f, { 1.0f,0.0f,0.0f });
 	//Light_SetPointLight(1, { 2.0f,10.0f,0.0f}, 0.1f, { 0.0f,1.0f,0.0f });
-	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f },4.0f, PlayerCamera_GetCameraPos());
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 4.0f, Camera_GetCameraPos());
 	//Light_SetPointLight(2, { 0.0f,0.0f,2.0f }, 0.1f, { 0.0f,0.0f,1.0f });
 	//ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
-	
 
-	Cube_Draw(g_cubePosition);
+
+	//Cube_Draw(g_cubePosition);
 	Player3D_Draw();
-	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, PlayerCamera_GetCameraPos());
-	MeshField_Draw(g_meshPosition);
+	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, Camera_GetCameraPos());
+	//MeshField_Draw(g_meshPosition);
+	Bullet3D_Draw();
 	//Grid_Draw();
+	Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
 }
 

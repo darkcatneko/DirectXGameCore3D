@@ -6,6 +6,8 @@
 #include "shader3d.h"
 #include "direct3d.h"
 #include "Player3D.h"
+#include "Shader_Billboard.h"
+using namespace DirectX;
 
 namespace 
 {
@@ -27,16 +29,16 @@ void PlayerCamera_Finalize()
 
 void PlayerCamera_Update(double elapsed_time)
 {
-	DirectX::XMVECTOR position = DirectX::XMVectorSubtract(
-		DirectX::XMLoadFloat3(&GetPlayerPosition()),
-		DirectX::XMVectorScale(DirectX::XMLoadFloat3(&GetPlayerFront()), 5.0f)
-	);
+	XMVECTOR position = XMLoadFloat3(&GetPlayerPosition());
 
-	DirectX::XMVECTOR target = DirectX::XMLoadFloat3(&GetPlayerPosition());
+	position = XMVectorMultiply(position, { 1.0f,0.0f,1.0f });
 
-	DirectX::XMVECTOR front = DirectX::XMVector3Normalize(
-		DirectX::XMVectorSubtract(target, position)
-	);
+	XMVECTOR target = position;
+
+	position = XMVectorAdd(position, { 0.0f,10.0f,-15.0f });
+
+
+	XMVECTOR front = XMVector3Normalize(target - position);
 	DirectX::XMStoreFloat3(&g_PlayerCameraPosition, position);
 	DirectX::XMStoreFloat3(&g_PlayerCameraFront, front);
 
@@ -48,6 +50,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	DirectX::XMStoreFloat4x4(&g_PlayerCameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
+	Shader_Billboard_SetViewMatrix(mtxView);
 
 	constexpr float fovAngleY = DirectX::XMConvertToRadians(60.0f);
 	float aspectRatio = static_cast<float>(Direct3D_GetBackBufferWidth()) / static_cast<float>(Direct3D_GetBackBufferHeight());
@@ -63,6 +66,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	XMStoreFloat4x4(&g_PlayerCameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
+	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& PlayerCamera_GetMatrix()
