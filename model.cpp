@@ -5,6 +5,7 @@
 #include "DirectXMath.h"
 #include "WICTextureLoader11.h"
 #include "Shader3D.h"
+#include "GameObject.h"
 
 using namespace DirectX;
 
@@ -237,8 +238,10 @@ void ModelRelease(MODEL* model)
 	delete model;
 }
 
-void ModelDraw(MODEL* model, XMFLOAT3 gameobjectPos)
+void ModelDraw(MODEL* model, GameObject* gameobject)
 {
+	XMFLOAT3 gameobjectPos = gameobject->transform.Position;
+	XMFLOAT3 gameobjectRot = gameobject->transform.Rotation;
 	Shader3D_Begin();
 
 	
@@ -248,9 +251,9 @@ void ModelDraw(MODEL* model, XMFLOAT3 gameobjectPos)
 	//world matrix
 		//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
-	XMMATRIX mtxRot = XMMatrixRotationY(g_rotate);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(gameobjectRot.x, gameobjectRot.y, gameobjectRot.z);
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	XMMATRIX mtxWorld = mtxTrans * mtxRot * mtxScale;
+	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
 	Shader3D_SetWorldMatrix(mtxWorld);
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++) {
 

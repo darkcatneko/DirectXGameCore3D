@@ -36,7 +36,7 @@ void Bullet3D_Draw()
 {
 	for (size_t i = 0; i < g_BulletsCount; i++)
 	{
-		ModelDraw(bullet_model, g_pBullets[i]->GetPosition());
+		ModelDraw(bullet_model,new GameObject(g_pBullets[i]->GetPosition()));
 	}
 }
 

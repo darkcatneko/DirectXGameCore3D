@@ -3,10 +3,10 @@
 #include "DirectXMath.h"
 class Transform
 {
+public:
 	DirectX::XMFLOAT3 Position;
 	DirectX::XMFLOAT3 Rotation;
 	DirectX::XMFLOAT3 Scale;
-public:
 	Transform();
 	Transform(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rotate, DirectX::XMFLOAT3 scale) ;
 	~Transform();

@@ -10,6 +10,7 @@
 #include "DirectXMath.h"
 #pragma comment (lib, "assimp-vc143-mt.lib")
 #include "Collision3D.h"
+#include "GameObject.h"
 
 
 
@@ -29,5 +30,5 @@ struct MODEL
 MODEL* ModelLoad(const char* FileName, float scale, bool bBlender);
 void ModelRelease(MODEL* model);
 
-void ModelDraw(MODEL* model, DirectX::XMFLOAT3 gameobjectPos);
+void ModelDraw(MODEL* model, GameObject* gameobject);
 

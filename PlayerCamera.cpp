@@ -25,6 +25,7 @@ void PlayerCamera_Initialize()
 
 void PlayerCamera_Finalize()
 {
+
 }
 
 void PlayerCamera_Update(double elapsed_time)
@@ -35,7 +36,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	XMVECTOR target = position;
 
-	position = XMVectorAdd(position, { 0.0f,10.0f,-15.0f });
+	position = XMVectorAdd(position, { 0.0f,3.0f,-4.0f });
 
 
 	XMVECTOR front = XMVector3Normalize(target - position);
