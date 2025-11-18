@@ -6,6 +6,7 @@
 #include "WICTextureLoader11.h"
 #include "Shader3D.h"
 #include "GameObject.h"
+#include <fstream>
 
 using namespace DirectX;
 
@@ -105,7 +106,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 			//End read bone
 			delete[] vertex;
 		}
-
+		
 
 
 		// インデックスバッファ生成
@@ -141,8 +142,9 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 	}
 
-
-
+	BuildSkeletonHierarchy(model, model->AiScene->mRootNode, -1);
+	//生成骨骼檔案
+	SaveSkeletonAsJSON(model, std::string(FileName));
 	g_textureWhite = Texture_Load(L"white.png");
 
 	//テクスチャ読み込み
@@ -227,7 +229,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 		model->Texture[filename.C_Str()] = texture;
 	}
-	BuildSkeletonHierarchy(model, model->AiScene->mRootNode, -1);
+	
 	//build animation
 	if (model->AiScene->mNumAnimations > 0)
 	{
@@ -264,6 +266,11 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 				dst.scales.push_back({ k.mTime, XMFLOAT3(k.mValue.x, k.mValue.y, k.mValue.z) });
 			}
 		}
+	}
+	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
+	{
+		aiAnimation* anim = model->AiScene->mAnimations[i];
+		ExportAnimation(anim, model, std::string(FileName));
 	}
 	return model;
 }
@@ -371,6 +378,160 @@ void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex)
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 		BuildSkeletonHierarchy(model, node->mChildren[i], parentIndex);
+}
+
+void SaveSkeletonAsJSON(const MODEL* model, const std::string& path)
+{
+	if(model->bones.size()==0)return;
+
+	std::string name = std::string(path);
+
+	// 刪掉路徑
+	size_t slashPos = name.find_last_of("/\\");
+	if (slashPos != std::string::npos)
+		name = name.substr(slashPos + 1);
+
+	// 刪掉副檔名 .fbx
+	size_t dotPos = name.find_last_of('.');
+	if (dotPos != std::string::npos)
+		name = name.substr(0, dotPos);
+
+	// 移除空白
+	name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+
+	// 加上新的副檔名
+	name += ".skel";
+
+
+
+	std::ofstream file(name, std::ios::binary);
+	if (!file)
+		return;
+
+	int32_t count = (int32_t)model->bones.size();
+	file.write((char*)&count, sizeof(int32_t));
+
+	for (const Bone& b : model->bones)
+	{
+		// Name
+		int32_t len = (int32_t)b.name.size();
+		file.write((char*)&len, sizeof(int32_t));
+		file.write(b.name.data(), len);
+
+		// Parent
+		file.write((char*)&b.parentIndex, sizeof(int32_t));
+
+		// Offset matrix
+		DirectX::XMFLOAT4X4 mat;
+		DirectX::XMStoreFloat4x4(&mat, b.offsetMatrix);
+		file.write((char*)&mat, sizeof(float) * 16);
+	}
+
+	file.close();
+}
+
+void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath)
+{
+
+	std::string name = std::string(outPath);
+
+	// 刪掉路徑
+	size_t slashPos = name.find_last_of("/\\");
+	if (slashPos != std::string::npos)
+		name = name.substr(slashPos + 1);
+
+	// 刪掉副檔名 .fbx
+	size_t dotPos = name.find_last_of('.');
+	if (dotPos != std::string::npos)
+		name = name.substr(0, dotPos);
+
+	// 移除空白
+	name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+
+	// 加上新的副檔名
+	name += ".anim";
+
+
+	std::ofstream file(name, std::ios::binary);
+
+	// 1. 動畫名稱
+	std::string animName = anim->mName.length > 0 ?
+		anim->mName.C_Str() : "Animation";
+
+	int32_t nameLen = animName.size();
+	file.write((char*)&nameLen, 4);
+	file.write(animName.c_str(), nameLen);
+
+	// 2. 動畫持續秒數
+	float duration = (float)anim->mDuration;
+	float ticksPerSecond =
+		(float)(anim->mTicksPerSecond != 0 ? anim->mTicksPerSecond : 30.0f);
+
+	float durationSeconds = duration / ticksPerSecond;
+	file.write((char*)&durationSeconds, 4);
+
+	// 3. 寫入 bone 數量（與 Skeleton 對應）
+	int32_t boneCount = (int32_t)model->bones.size();
+	file.write((char*)&boneCount, 4);
+
+	// 4. 每個 bone 的 keyframes
+	for (int b = 0; b < boneCount; b++)
+	{
+		std::string boneName = model->bones[b].name;
+		aiNodeAnim* channel = nullptr;
+
+		// 找對應的 channel
+		for (unsigned int c = 0; c < anim->mNumChannels; c++)
+		{
+			if (boneName == anim->mChannels[c]->mNodeName.C_Str())
+			{
+				channel = anim->mChannels[c];
+				break;
+			}
+		}
+
+		if (!channel)
+		{
+			int32_t zero = 0;
+			file.write((char*)&zero, 4);
+			continue;
+		}
+
+		int keyCount = std::max({
+	(int)channel->mNumPositionKeys,
+	(int)channel->mNumRotationKeys,
+	(int)channel->mNumScalingKeys
+			});
+
+		file.write((char*)&keyCount, 4);
+
+		for (int k = 0; k < keyCount; k++)
+		{
+			// 時間：以 Position Keys 的時間為主
+			int posIndex = std::min(k, (int)channel->mNumPositionKeys - 1);
+			float t = (float)channel->mPositionKeys[posIndex].mTime / ticksPerSecond;
+			file.write((char*)&t, 4);
+
+			// Translation
+			aiVector3D p = channel->mPositionKeys[posIndex].mValue;
+			float T[3] = { p.x, p.y, p.z };
+			file.write((char*)T, sizeof(T));
+
+			// Rotation
+			int rotIndex = std::min(k, (int)channel->mNumRotationKeys - 1);
+			aiQuaternion q = channel->mRotationKeys[rotIndex].mValue;
+			float R[4] = { q.x, q.y, q.z, q.w };
+			file.write((char*)R, sizeof(R));
+
+			// Scale
+			int sIndex = std::min(k, (int)channel->mNumScalingKeys - 1);
+			aiVector3D sc = channel->mScalingKeys[sIndex].mValue;
+			float S[3] = { sc.x, sc.y, sc.z };
+			file.write((char*)S, sizeof(S));
+		}
+	}
+
+	file.close();
 }
 
 

@@ -13,7 +13,6 @@
 #include "GameObject.h"
 
 
-
 struct Bone
 {
 	std::string name;
@@ -21,6 +20,7 @@ struct Bone
 	DirectX::XMMATRIX offsetMatrix; // 綁定姿勢
 	DirectX::XMMATRIX finalTransform; // 每幀更新後的矩陣
 };
+
 struct AnimationChannel {
 	std::vector<std::pair<double, DirectX::XMFLOAT3>> positions;
 	std::vector<std::pair<double, DirectX::XMFLOAT4>> rotations;
@@ -61,3 +61,6 @@ T Lerp(const T& a, const T& b, float t)
 {
 	return a + (b - a) * t;
 }
+
+void SaveSkeletonAsJSON(const MODEL* model, const std::string& path);
+void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath);
