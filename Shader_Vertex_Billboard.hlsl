@@ -20,6 +20,12 @@ cbuffer VS_CONSTANT_BUFFER : register(b3)
 {
     float4x4 projection;
 };
+cbuffer VS_CONSTANT_BUFFER : register(b4)
+{
+    float2 scale;
+    float2 translation;
+}
+
 
 struct VS_OUT
 {
@@ -48,7 +54,7 @@ VS_OUT main(VS_IN vi)
     vo.posH = mul(vi.posL, mtxWVP);
     
     vo.color = vi.color;
-    vo.uv = vi.uv;
+    vo.uv = vi.uv * scale + translation;
 
     return vo;
 }
