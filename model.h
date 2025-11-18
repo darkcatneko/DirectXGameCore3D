@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <unordered_map>
 
@@ -14,9 +14,31 @@
 
 
 
+struct Bone
+{
+	std::string name;
+	int parentIndex;
+	DirectX::XMMATRIX offsetMatrix; // 綁定姿勢
+	DirectX::XMMATRIX finalTransform; // 每幀更新後的矩陣
+};
+struct AnimationChannel {
+	std::vector<std::pair<double, DirectX::XMFLOAT3>> positions;
+	std::vector<std::pair<double, DirectX::XMFLOAT4>> rotations;
+	std::vector<std::pair<double, DirectX::XMFLOAT3>> scales;
+};
+struct Animation {
+	double duration;
+	double ticksPerSecond;
+	std::unordered_map<std::string, AnimationChannel> channels;
+};
 struct MODEL
 {
 	const aiScene* AiScene = nullptr;
+	std::vector<Bone> bones;
+	std::unordered_map<std::string, int> boneIndex;
+	Animation animation;
+
+
 
 	ID3D11Buffer** VertexBuffer;
 	ID3D11Buffer** IndexBuffer;
@@ -26,9 +48,16 @@ struct MODEL
 	AABB Local;
 };
 
-
 MODEL* ModelLoad(const char* FileName, float scale, bool bBlender);
 void ModelRelease(MODEL* model);
 
 void ModelDraw(MODEL* model, GameObject* gameobject);
 
+DirectX::XMMATRIX AiToXMMATRIX(const aiMatrix4x4& m);
+void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex);
+
+template <typename T>
+T Lerp(const T& a, const T& b, float t)
+{
+	return a + (b - a) * t;
+}

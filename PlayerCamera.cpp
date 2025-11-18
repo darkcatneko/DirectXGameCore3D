@@ -32,7 +32,7 @@ void PlayerCamera_Update(double elapsed_time)
 {
 	XMVECTOR position = XMLoadFloat3(&GetPlayerPosition());
 
-	position = XMVectorMultiply(position, { 1.0f,0.0f,1.0f });
+	//position = XMVectorMultiply(position, { 1.0f,0.0f,1.0f });
 
 	XMVECTOR target = position;
 

@@ -1,4 +1,4 @@
-#include "assert.h"
+Ôªø#include "assert.h"
 #include "direct3d.h"
 #include "texture.h"
 #include "model.h"
@@ -24,7 +24,6 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 {
 	MODEL* model = new MODEL;
 
-
 	
 
 	model->AiScene = aiImportFile(FileName, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded);
@@ -39,7 +38,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 		aiMesh* mesh = model->AiScene->mMeshes[m];
 
 
-		// í∏ì_ÉoÉbÉtÉ@ê∂ê¨
+		// È†ÇÁÇπ„Éê„ÉÉ„Éï„Ç°ÁîüÊàê
 		{
 			Vertex* vertex = new Vertex[mesh->mNumVertices];
 
@@ -84,12 +83,32 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 			Direct3D_GetDevice()->CreateBuffer(&bd, &sd, &model->VertexBuffer[m]);
 
+			//Read bone
+			for (unsigned int i = 0; i < mesh->mNumBones; i++)
+			{
+				aiBone* aibone = mesh->mBones[i];
+				std::string boneName = aibone->mName.C_Str();
+
+				// Â¶ÇÊûúÈÄôÂÄãÈ™®È†≠Ê≤íÂá∫ÁèæÈÅéÔºåÂª∫Á´ãË≥áÊñô
+				if (!model->boneIndex.count(boneName))
+				{
+					Bone bone;
+					bone.name = boneName;
+					bone.parentIndex = -1;
+					bone.offsetMatrix = AiToXMMATRIX(aibone->mOffsetMatrix);
+					bone.finalTransform = XMMatrixIdentity();
+
+					model->boneIndex[boneName] = model->bones.size();
+					model->bones.push_back(bone);
+				}
+			}
+			//End read bone
 			delete[] vertex;
 		}
 
 
 
-		// ÉCÉìÉfÉbÉNÉXÉoÉbÉtÉ@ê∂ê¨
+		// „Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ„Éê„ÉÉ„Éï„Ç°ÁîüÊàê
 		{
 			unsigned int* index = new unsigned int[mesh->mNumFaces * 3];
 
@@ -126,7 +145,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 	g_textureWhite = Texture_Load(L"white.png");
 
-	//ÉeÉNÉXÉ`ÉÉì«Ç›çûÇ›
+	//„ÉÜ„ÇØ„Çπ„ÉÅ„É£Ë™≠„ÅøËæº„Åø
 	for (int i = 0; i < model->AiScene->mNumTextures; i++)
 		{
 
@@ -208,6 +227,44 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 		model->Texture[filename.C_Str()] = texture;
 	}
+	BuildSkeletonHierarchy(model, model->AiScene->mRootNode, -1);
+	//build animation
+	if (model->AiScene->mNumAnimations > 0)
+	{
+		aiAnimation* anim = model->AiScene->mAnimations[0];
+		model->animation.duration = anim->mDuration;
+		model->animation.ticksPerSecond = anim->mTicksPerSecond != 0 ?
+			anim->mTicksPerSecond : 25.0;
+
+		for (unsigned int c = 0; c < anim->mNumChannels; c++)
+		{
+			aiNodeAnim* channel = anim->mChannels[c];
+			std::string name = channel->mNodeName.C_Str();
+
+			AnimationChannel& dst = model->animation.channels[name];
+
+			// Position
+			for (unsigned int i = 0; i < channel->mNumPositionKeys; i++)
+			{
+				auto& k = channel->mPositionKeys[i];
+				dst.positions.push_back({ k.mTime, XMFLOAT3(k.mValue.x, k.mValue.y, k.mValue.z) });
+			}
+
+			// Rotation
+			for (unsigned int i = 0; i < channel->mNumRotationKeys; i++)
+			{
+				auto& k = channel->mRotationKeys[i];
+				dst.rotations.push_back({ k.mTime, XMFLOAT4(k.mValue.x, k.mValue.y, k.mValue.z, k.mValue.w) });
+			}
+
+			// Scale
+			for (unsigned int i = 0; i < channel->mNumScalingKeys; i++)
+			{
+				auto& k = channel->mScalingKeys[i];
+				dst.scales.push_back({ k.mTime, XMFLOAT3(k.mValue.x, k.mValue.y, k.mValue.z) });
+			}
+		}
+	}
 	return model;
 }
 
@@ -245,7 +302,7 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 	Shader3D_Begin();
 
 	
-	// ÉvÉäÉ~ÉeÉBÉuÉgÉ|ÉçÉWê›íË
+	// „Éó„É™„Éü„ÉÜ„Ç£„Éñ„Éà„Éù„É≠„Ç∏Ë®≠ÂÆö
 	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	Direct3D_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//world matrix
@@ -279,17 +336,42 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 
 
 
-		// í∏ì_ÉoÉbÉtÉ@Çï`âÊÉpÉCÉvÉâÉCÉìÇ…ê›íË
+		// È†ÇÁÇπ„Éê„ÉÉ„Éï„Ç°„ÇíÊèèÁîª„Éë„Ç§„Éó„É©„Ç§„É≥„Å´Ë®≠ÂÆö
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
 		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
-		// É|ÉäÉSÉìï`âÊñΩóﬂî≠çs
+		// „Éù„É™„Ç¥„É≥ÊèèÁîªÂëΩ‰ª§Áô∫Ë°å
 		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces * 3, 0, 0);
 	}
 }
 
+DirectX::XMMATRIX AiToXMMATRIX(const aiMatrix4x4& m)
+{
+	return DirectX::XMMATRIX(
+		m.a1, m.b1, m.c1, m.d1,
+		m.a2, m.b2, m.c2, m.d2,
+		m.a3, m.b3, m.c3, m.d3,
+		m.a4, m.b4, m.c4, m.d4
+	);
+}
+
+void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex)
+{
+	std::string n = node->mName.C_Str();
+
+	if (model->boneIndex.count(n))
+	{
+		int index = model->boneIndex[n];
+		model->bones[index].parentIndex = parentIndex;
+
+		parentIndex = index;
+	}
+
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+		BuildSkeletonHierarchy(model, node->mChildren[i], parentIndex);
+}
 
 
 
