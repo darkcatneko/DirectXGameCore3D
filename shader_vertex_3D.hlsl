@@ -20,7 +20,15 @@ cbuffer VS_CONSTANT_BUFFER : register(b3)
 {
     float4x4 projection;
 };
-
+// ----------------------------
+// 新規追加：ボーン行列
+// CPU側で「最終変換済み」行列 (offset * global) を転送してください
+// 128 は必要に応じて変更
+// ----------------------------
+cbuffer SKINNING_BUFFER : register(b4)
+{
+    float4x4 gBones[128];
+};
 struct VS_OUT
 {
     float4 posH : SV_Position;
@@ -35,34 +43,102 @@ struct VS_IN
     float4 normalL : NORMAL0;
     float4 color : COLOR0;
     float2 uv : TEXCOORD0;
+    
+    uint4 boneIdx : BONEINDEX; // 頂点に振られたボーンの index
+    float4 weight : BONEWEIGHT; // それぞれの重み
 };
 
 //=============================================================================
 // 頂点シェーダ
 //=============================================================================
+//VS_OUT main(VS_IN vi)
+//{
+//    VS_OUT vo;
+
+//    //---------------------------------------------------------------------
+//    // ★ 1. スキニング：ローカル → ボーン変換後の頂点へ
+//    //---------------------------------------------------------------------
+//    float4 localPos = vi.posL;
+//    float4 localNormal = float4(vi.normalL.xyz, 0);
+
+//    // 頂点位置
+//    float4 skinnedPos = 0;
+//    skinnedPos += mul(localPos, gBones[vi.boneIdx.x]) * vi.weight.x;
+//    skinnedPos += mul(localPos, gBones[vi.boneIdx.y]) * vi.weight.y;
+//    skinnedPos += mul(localPos, gBones[vi.boneIdx.z]) * vi.weight.z;
+//    skinnedPos += mul(localPos, gBones[vi.boneIdx.w]) * vi.weight.w;
+
+//    // 法線（w=0）
+//    float4 skinnedNormal = 0;
+//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.x]) * vi.weight.x;
+//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.y]) * vi.weight.y;
+//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.z]) * vi.weight.z;
+//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.w]) * vi.weight.w;
+
+//    //---------------------------------------------------------------------
+//    // ★ 2. あなたが使っていた World / View / Projection
+//    //---------------------------------------------------------------------
+//    float4x4 mtxWV = mul(world, view);
+//    float4x4 mtxWVP = mul(mtxWV, projection);
+//    vo.posH = mul(vi.posL, mtxWVP);
+//    //vo.posH = mul(skinnedPos, mtxWVP);
+
+//    // posW
+//    //vo.posW = mul(skinnedPos, world);
+//     //スペキュラ
+//    vo.posW = mul(vi.posL, world);
+    
+//    float4 normalW = mul(float4(vi.normalL.xyz, 0.0f), world);
+//    vo.normalW = normalize(normalW);
+//    // 法線をワールド空間へ
+//    //vo.normalW = normalize(mul(skinnedNormal, world));
+
+//    // 既存処理
+//    vo.color = vi.color;
+//    vo.uv = vi.uv;
+
+//    return vo;
+//}
+
 VS_OUT main(VS_IN vi)
 {
     VS_OUT vo;
 
+    //---------------------------------------------------------------------
+    // ★ 1. スキニング：ローカル → ボーン変換後の頂点へ
+    //---------------------------------------------------------------------
+    float4 localPos = vi.posL;
+    float4 localNormal = float4(vi.normalL.xyz, 0);
 
-    //座標変換
+    // 頂点位置
+    float4 skinnedPos = 0;
+    skinnedPos += mul(localPos, gBones[vi.boneIdx.x]) * vi.weight.x;
+    skinnedPos += mul(localPos, gBones[vi.boneIdx.y]) * vi.weight.y;
+    skinnedPos += mul(localPos, gBones[vi.boneIdx.z]) * vi.weight.z;
+    skinnedPos += mul(localPos, gBones[vi.boneIdx.w]) * vi.weight.w;
+
+    // 法線（w=0）
+    float4 skinnedNormal = 0;
+    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.x]) * vi.weight.x;
+    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.y]) * vi.weight.y;
+    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.z]) * vi.weight.z;
+    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.w]) * vi.weight.w;
+
+    //---------------------------------------------------------------------
+    // ★ 2. あなたが使っていた World / View / Projection
+    //---------------------------------------------------------------------
     float4x4 mtxWV = mul(world, view);
     float4x4 mtxWVP = mul(mtxWV, projection);
-    vo.posH = mul(vi.posL, mtxWVP);
 
+    vo.posH = mul(skinnedPos, mtxWVP);
 
-    // ライト計算
-    // 法線のワールド変換
-    float4 normalW = mul(float4(vi.normalL.xyz, 0.0f), world);
-    vo.normalW = normalize(normalW);
-   //
+    // posW
+    vo.posW = mul(skinnedPos, world);
 
+    // 法線をワールド空間へ
+    vo.normalW = normalize(mul(skinnedNormal, world));
 
-    //スペキュラ
-    vo.posW = mul(vi.posL, world);
-  
-
-   
+    // 既存処理
     vo.color = vi.color;
     vo.uv = vi.uv;
 

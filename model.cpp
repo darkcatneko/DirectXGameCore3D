@@ -10,14 +10,17 @@
 
 using namespace DirectX;
 
-
-struct  Vertex
+struct Vertex
 {
-	XMFLOAT3 position;
-	XMFLOAT3 normal;
-	XMFLOAT4 color;
-	XMFLOAT2 texcoord;
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT2 texcoord;
+
+	UINT boneIndex[4];
+	float boneWeight[4];
 };
+void AddBoneWeightToVertex(Vertex& v, int idx, float w);
 static int g_textureWhite = -1;
 static float g_rotate;
 
@@ -69,8 +72,54 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 					model->Local.max.y = std::max(model->Local.max.y, vertex[v].position.y);
 					model->Local.max.z = std::max(model->Local.max.z, vertex[v].position.z);
 				}
+				for (int k = 0; k < 4; k++)
+				{
+					vertex[v].boneIndex[k] = 0;
+					vertex[v].boneWeight[k] = 0.0f;
+				}
 			}
 
+			// 2) 讀 Bone + 填權重到 vertex[vId]
+			for (unsigned int i = 0; i < mesh->mNumBones; i++)
+			{
+				aiBone* aibone = mesh->mBones[i];
+				std::string boneName = aibone->mName.C_Str();
+
+				int boneIndex;
+
+				// 如果這個骨頭沒出現過，建立資料
+				auto it = model->boneIndex.find(boneName);
+				if (it == model->boneIndex.end())
+				{
+					Bone bone;
+					bone.name = boneName;
+					bone.parentIndex = -1;
+					bone.offsetMatrix = AiToXMMATRIX(aibone->mOffsetMatrix);
+					bone.finalTransform = XMMatrixIdentity();
+
+					boneIndex = (int)model->bones.size();
+					model->bones.push_back(bone);
+					model->boneIndex[boneName] = boneIndex;
+				}
+				else
+				{
+					boneIndex = it->second;
+				}
+
+				// 把這個 bone 的權重寫進對應頂點
+				for (unsigned int j = 0; j < aibone->mNumWeights; j++)
+				{
+					unsigned int vId = aibone->mWeights[j].mVertexId;
+					float weight = aibone->mWeights[j].mWeight;
+
+					if (vId >= mesh->mNumVertices) continue; // 保險
+
+					AddBoneWeightToVertex(vertex[vId], boneIndex, weight);
+				}
+			}
+			// ★ End Read Bone & Weights
+
+			// 3) 用「已含骨骼權重」的 vertex 建 VertexBuffer
 			D3D11_BUFFER_DESC bd;
 			ZeroMemory(&bd, sizeof(bd));
 			bd.Usage = D3D11_USAGE_DEFAULT;
@@ -84,26 +133,6 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 			Direct3D_GetDevice()->CreateBuffer(&bd, &sd, &model->VertexBuffer[m]);
 
-			//Read bone
-			for (unsigned int i = 0; i < mesh->mNumBones; i++)
-			{
-				aiBone* aibone = mesh->mBones[i];
-				std::string boneName = aibone->mName.C_Str();
-
-				// 如果這個骨頭沒出現過，建立資料
-				if (!model->boneIndex.count(boneName))
-				{
-					Bone bone;
-					bone.name = boneName;
-					bone.parentIndex = -1;
-					bone.offsetMatrix = AiToXMMATRIX(aibone->mOffsetMatrix);
-					bone.finalTransform = XMMatrixIdentity();
-
-					model->boneIndex[boneName] = model->bones.size();
-					model->bones.push_back(bone);
-				}
-			}
-			//End read bone
 			delete[] vertex;
 		}
 		
@@ -142,7 +171,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 
 	}
 
-	BuildSkeletonHierarchy(model, model->AiScene->mRootNode, -1);
+	BuildSkeletonHierarchy(model, model->AiScene->mRootNode, -1,XMMatrixIdentity());
 	//生成骨骼檔案
 	SaveSkeletonAsJSON(model, std::string(FileName));
 	g_textureWhite = Texture_Load(L"white.png");
@@ -306,6 +335,7 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 {
 	XMFLOAT3 gameobjectPos = gameobject->transform.Position;
 	XMFLOAT3 gameobjectRot = gameobject->transform.Rotation;
+	XMFLOAT3 gameobjectScale = gameobject->transform.Scale;
 	Shader3D_Begin();
 
 	
@@ -316,7 +346,7 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 		//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
 	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(gameobjectRot.x, gameobjectRot.y, gameobjectRot.z);
-	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	XMMATRIX mtxScale = XMMatrixScaling(gameobjectScale.x, gameobjectScale.y, gameobjectScale.z);
 	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
 	Shader3D_SetWorldMatrix(mtxWorld);
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++) {
@@ -356,28 +386,38 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 
 DirectX::XMMATRIX AiToXMMATRIX(const aiMatrix4x4& m)
 {
-	return DirectX::XMMATRIX(
-		m.a1, m.b1, m.c1, m.d1,
-		m.a2, m.b2, m.c2, m.d2,
-		m.a3, m.b3, m.c3, m.d3,
-		m.a4, m.b4, m.c4, m.d4
-	);
+	return DirectX::XMMatrixTranspose(DirectX::XMMATRIX(
+		m.a1, m.a2, m.a3, m.a4,
+		m.b1, m.b2, m.b3, m.b4,
+		m.c1, m.c2, m.c3, m.c4,
+		m.d1, m.d2, m.d3, m.d4
+	));
 }
 
-void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex)
+void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex, XMMATRIX parentTransform)
 {
-	std::string n = node->mName.C_Str();
+	std::string nodeName = node->mName.C_Str();
 
-	if (model->boneIndex.count(n))
+	XMMATRIX local = AiToXMMATRIX(node->mTransformation);
+	XMMATRIX global = parentTransform * local;
+
+	int currentBoneIndex = parentIndex;
+
+	// 這個 node 是否對應到一根骨頭？
+	auto it = model->boneIndex.find(nodeName);
+	if (it != model->boneIndex.end())
 	{
-		int index = model->boneIndex[n];
-		model->bones[index].parentIndex = parentIndex;
+		currentBoneIndex = it->second;
+		model->bones[currentBoneIndex].parentIndex = parentIndex;
 
-		parentIndex = index;
+		model->bones[currentBoneIndex].globalBind = global;
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++)
-		BuildSkeletonHierarchy(model, node->mChildren[i], parentIndex);
+	// 遞迴子節點
+	for (unsigned int i = 0; i < node->mNumChildren; ++i)
+	{
+		BuildSkeletonHierarchy(model, node->mChildren[i], currentBoneIndex,global);
+	}
 }
 
 void SaveSkeletonAsJSON(const MODEL* model, const std::string& path)
@@ -533,6 +573,19 @@ void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath
 
 	file.close();
 }
+
+void AddBoneWeightToVertex(Vertex& v, int idx, float w)
+{
+	for (int i = 0; i < 4; i++) {
+		if (v.boneWeight[i] == 0.0f) {
+			v.boneIndex[i] = idx;
+			v.boneWeight[i] = w;
+			return;
+		}
+	}
+}
+
+
 
 
 

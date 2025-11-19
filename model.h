@@ -18,6 +18,7 @@ struct Bone
 	std::string name;
 	int parentIndex;
 	DirectX::XMMATRIX offsetMatrix; // 綁定姿勢
+	DirectX::XMMATRIX globalBind; // 綁定姿勢
 	DirectX::XMMATRIX finalTransform; // 每幀更新後的矩陣
 };
 
@@ -52,9 +53,8 @@ MODEL* ModelLoad(const char* FileName, float scale, bool bBlender);
 void ModelRelease(MODEL* model);
 
 void ModelDraw(MODEL* model, GameObject* gameobject);
-
 DirectX::XMMATRIX AiToXMMATRIX(const aiMatrix4x4& m);
-void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex);
+void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex, DirectX::XMMATRIX parentTransform);
 
 template <typename T>
 T Lerp(const T& a, const T& b, float t)
@@ -64,3 +64,4 @@ T Lerp(const T& a, const T& b, float t)
 
 void SaveSkeletonAsJSON(const MODEL* model, const std::string& path);
 void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath);
+

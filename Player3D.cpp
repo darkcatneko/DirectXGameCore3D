@@ -9,6 +9,7 @@
 #include "Map.h"
 #include "Cube.h"
 #include "Bullet3D.h"
+#include "AnimationSystem.h"
 using namespace DirectX;
 
 namespace {
@@ -17,6 +18,9 @@ namespace {
 	DirectX::XMFLOAT3 g_PlayerVelocity = {};
 	MODEL* g_pPlayerModel = nullptr;
 	bool g_IsJump = false;
+	AnimationPlayer g_AnimPlayer;
+	std::vector<DirectX::XMMATRIX> g_SkinMatrices;
+
 }
 
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
@@ -24,7 +28,7 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad("Breathing Idle.fbx", 0.01f, false);
+	g_pPlayerModel = ModelLoad( "Ch03_nonPBR.fbx", 1.0f, false);
 }
 
 void Player3D_Finalize()
@@ -150,6 +154,12 @@ void  Player3D_Update(double elapsed_time)
 	{
 		Bullet3D_CreateBullet(g_PlayerPosition, g_PlayerFront);
 	}
+	// 更新動畫
+	g_AnimPlayer.Update(*g_pPlayerModel, elapsed_time);  // 會更新每個 bone.finalTransform
+	// 組 Skin Matrix 陣列
+	BuildSkinMatrices(*g_pPlayerModel, g_SkinMatrices);
+
+	Shader3D_SkinningBegin(g_SkinMatrices);
 }
 
 void Player3D_Draw()
@@ -160,7 +170,7 @@ void Player3D_Draw()
 		g_PlayerPosition.y,
 		g_PlayerPosition.z
 	);
-	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToRadians(180),0}));
+	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,0,0}, { 0.01f,0.01f,0.01f }));
 	Map_Draw();
 	//Cube_Draw(g_PlayerPosition);
 }

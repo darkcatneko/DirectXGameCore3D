@@ -159,6 +159,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationSystem.cpp" />
     <ClCompile Include="Billboard.cpp" />
     <ClCompile Include="Bullet3D.cpp" />
     <ClCompile Include="Camera3D.cpp" />
@@ -200,6 +201,7 @@
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationSystem.h" />
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Billboard.h" />
     <ClInclude Include="Bullet3D.h" />
