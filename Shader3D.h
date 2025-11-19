@@ -3,6 +3,7 @@
 
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <vector>
 
 struct GammaBuffer
 {
@@ -22,5 +23,5 @@ void Shader3D_SetProjectionMatrix(const DirectX::XMMATRIX& matrix);
 void Shader3d_SetColor(const DirectX::XMFLOAT4 color);
 
 void Shader3D_Begin();
-
+void Shader3D_SkinningBegin(std::vector<DirectX::XMMATRIX> &g_SkinMatrices);
 #endif 
