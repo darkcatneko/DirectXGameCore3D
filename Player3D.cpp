@@ -28,7 +28,7 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "Ch03_nonPBR.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "untitled0022.fbx", 1.0f, false);
 }
 
 void Player3D_Finalize()
@@ -171,7 +171,7 @@ void Player3D_Draw()
 		g_PlayerPosition.z
 	);
 	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,0,0}, { 0.01f,0.01f,0.01f }));
-	Map_Draw();
+	//Map_Draw();
 	//Cube_Draw(g_PlayerPosition);
 }
 
