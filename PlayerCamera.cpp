@@ -4,6 +4,7 @@
 #include "debug_text.h"
 #include <sstream>
 #include "shader3d.h"
+#include "shader3d_Static.h"
 #include "direct3d.h"
 #include "Player3D.h"
 #include "Shader_Billboard.h"
@@ -51,6 +52,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	DirectX::XMStoreFloat4x4(&g_PlayerCameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);
+	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
 
 	constexpr float fovAngleY = DirectX::XMConvertToRadians(60.0f);
@@ -67,6 +69,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	XMStoreFloat4x4(&g_PlayerCameraMatrix_Perspective, mtxPerspective);
 	Shader3D_SetProjectionMatrix(mtxPerspective);
+	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 }
 

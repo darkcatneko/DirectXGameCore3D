@@ -1,11 +1,11 @@
-#include "model.h"
+#include "model_Static.h"
 #include "Bullet3D.h"
 static Bullet3D* g_pBullets[MAX_BULLET]{};
 static int g_BulletsCount{ 0 };
-static MODEL* bullet_model;
+static MODEL_STATIC* bullet_model;
 void Bullet3D_Initialize()
 {
-	bullet_model = ModelLoad("test.fbx", 0.01f, false);
+	bullet_model = Model_Static_Load("test.fbx", 0.01f, false);
 }
 
 void Bullet3D_Finitialize()
@@ -36,7 +36,7 @@ void Bullet3D_Draw()
 {
 	for (size_t i = 0; i < g_BulletsCount; i++)
 	{
-		ModelDraw(bullet_model,new GameObject(g_pBullets[i]->GetPosition()));
+		Model_Static_Draw(bullet_model,new GameObject(g_pBullets[i]->GetPosition()));
 	}
 }
 

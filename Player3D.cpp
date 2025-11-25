@@ -171,7 +171,7 @@ void Player3D_Draw()
 		g_PlayerPosition.z
 	);
 	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,0,0}, { 0.01f,0.01f,0.01f }));
-	//Map_Draw();
+	Map_Draw();
 	//Cube_Draw(g_PlayerPosition);
 }
 

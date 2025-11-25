@@ -4,7 +4,7 @@
 #include "Key_Logger.h"
 #include "mouse.h"
 #include"shader.h"
-#include "Shader3D.h"
+#include "Shader3D_Static.h"
 #include "Cube.h"
 #include "Grid.h"
 #include "sprite.h"
@@ -47,6 +47,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Mouse_Initialize(hWnd);
 		Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Shader3D_Static_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader_Billboard_Initialize();
 		Sampler_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
