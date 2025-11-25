@@ -182,7 +182,7 @@ void AnimationPlayer::Update(MODEL& model, double deltaTime)
     // 把 deltaTime(秒) 轉成 ticks
     currentTime += deltaTime;
 
-    double ticks = currentTime * anim.ticksPerSecond;
+    double ticks = currentTime * anim.ticksPerSecond/2;
     double duration = anim.duration; // duration in ticks
 
     double timeInTicks;

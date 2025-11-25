@@ -63,5 +63,6 @@ T Lerp(const T& a, const T& b, float t)
 }
 
 void SaveSkeletonAsJSON(const MODEL* model, const std::string& path);
-void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath);
+void ExportAnimation(MODEL* model, const std::string& outPath);
+Animation ImportAnimation(const std::string& path);
 

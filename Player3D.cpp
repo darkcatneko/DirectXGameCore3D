@@ -20,7 +20,8 @@ namespace {
 	bool g_IsJump = false;
 	AnimationPlayer g_AnimPlayer;
 	std::vector<DirectX::XMMATRIX> g_SkinMatrices;
-
+	Animation g_pPlayerAnimation_Run;
+	Animation g_pPlayerAnimation_Idle;
 }
 
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
@@ -28,7 +29,9 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "untitled0022.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "Untitled05.fbx", 1.0f, false);
+	g_pPlayerAnimation_Run = ImportAnimation("Run.anim");
+	g_pPlayerAnimation_Idle = ImportAnimation("Idle.anim");
 }
 
 void Player3D_Finalize()
@@ -154,6 +157,13 @@ void  Player3D_Update(double elapsed_time)
 	{
 		Bullet3D_CreateBullet(g_PlayerPosition, g_PlayerFront);
 	}
+	if (KeyLogger_IsTrigger(KK_N))
+	{
+		g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+	}if (KeyLogger_IsTrigger(KK_M))
+	{
+		g_pPlayerModel->animation = g_pPlayerAnimation_Idle;
+	}
 	// 更新動畫
 	g_AnimPlayer.Update(*g_pPlayerModel, elapsed_time);  // 會更新每個 bone.finalTransform
 	// 組 Skin Matrix 陣列
@@ -172,7 +182,7 @@ void Player3D_Draw()
 	);
 	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,0,0}, { 0.01f,0.01f,0.01f }));
 	Map_Draw();
-	//Cube_Draw(g_PlayerPosition);
+	Cube_Draw(g_PlayerPosition);
 }
 
 const DirectX::XMFLOAT3& GetPlayerPosition()

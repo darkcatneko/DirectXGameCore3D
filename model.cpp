@@ -299,7 +299,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
 	{
 		aiAnimation* anim = model->AiScene->mAnimations[i];
-		ExportAnimation(anim, model, std::string(FileName));
+		ExportAnimation(model,"Run.anim");
 	}
 	return model;
 }
@@ -470,110 +470,133 @@ void SaveSkeletonAsJSON(const MODEL* model, const std::string& path)
 	file.close();
 }
 
-void ExportAnimation(aiAnimation* anim, MODEL* model, const std::string& outPath)
+void ExportAnimation(MODEL* model, const std::string& outPath)
 {
+	const Animation& anim = model->animation;
 
-	std::string name = std::string(outPath);
+	std::ofstream file(outPath, std::ios::binary);
+	if (!file.is_open()) return;
 
-	// 刪掉路徑
-	size_t slashPos = name.find_last_of("/\\");
-	if (slashPos != std::string::npos)
-		name = name.substr(slashPos + 1);
+	// --- duration ---
+	file.write((char*)&anim.duration, sizeof(double));
+	file.write((char*)&anim.ticksPerSecond, sizeof(double));
 
-	// 刪掉副檔名 .fbx
-	size_t dotPos = name.find_last_of('.');
-	if (dotPos != std::string::npos)
-		name = name.substr(0, dotPos);
+	// --- channel count ---
+	int32_t channelCount = anim.channels.size();
+	file.write((char*)&channelCount, sizeof(int32_t));
 
-	// 移除空白
-	name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-
-	// 加上新的副檔名
-	name += ".anim";
-
-
-	std::ofstream file(name, std::ios::binary);
-
-	// 1. 動畫名稱
-	std::string animName = anim->mName.length > 0 ?
-		anim->mName.C_Str() : "Animation";
-
-	int32_t nameLen = animName.size();
-	file.write((char*)&nameLen, 4);
-	file.write(animName.c_str(), nameLen);
-
-	// 2. 動畫持續秒數
-	float duration = (float)anim->mDuration;
-	float ticksPerSecond =
-		(float)(anim->mTicksPerSecond != 0 ? anim->mTicksPerSecond : 30.0f);
-
-	float durationSeconds = duration / ticksPerSecond;
-	file.write((char*)&durationSeconds, 4);
-
-	// 3. 寫入 bone 數量（與 Skeleton 對應）
-	int32_t boneCount = (int32_t)model->bones.size();
-	file.write((char*)&boneCount, 4);
-
-	// 4. 每個 bone 的 keyframes
-	for (int b = 0; b < boneCount; b++)
+	// --- 正確的寫 channel（boneName 在 for 裡） ---
+	for (auto& kv : anim.channels)
 	{
-		std::string boneName = model->bones[b].name;
-		aiNodeAnim* channel = nullptr;
+		const std::string& boneName = kv.first;
+		const AnimationChannel& channel = kv.second;
 
-		// 找對應的 channel
-		for (unsigned int c = 0; c < anim->mNumChannels; c++)
+		// boneName
+		int32_t nameLen = boneName.size();
+		file.write((char*)&nameLen, 4);
+		file.write(boneName.c_str(), nameLen);
+
+		// positions
+		int32_t posCount = channel.positions.size();
+		file.write((char*)&posCount, 4);
+		for (auto& p : channel.positions)
 		{
-			if (boneName == anim->mChannels[c]->mNodeName.C_Str())
-			{
-				channel = anim->mChannels[c];
-				break;
-			}
+			file.write((char*)&p.first, sizeof(double));
+			file.write((char*)&p.second, sizeof(XMFLOAT3));
 		}
 
-		if (!channel)
+		// rotations
+		int32_t rotCount = channel.rotations.size();
+		file.write((char*)&rotCount, 4);
+		for (auto& r : channel.rotations)
 		{
-			int32_t zero = 0;
-			file.write((char*)&zero, 4);
-			continue;
+			file.write((char*)&r.first, sizeof(double));
+			file.write((char*)&r.second, sizeof(XMFLOAT4));
 		}
 
-		int keyCount = std::max({
-	(int)channel->mNumPositionKeys,
-	(int)channel->mNumRotationKeys,
-	(int)channel->mNumScalingKeys
-			});
-
-		file.write((char*)&keyCount, 4);
-
-		for (int k = 0; k < keyCount; k++)
+		// scales
+		int32_t scaleCount = channel.scales.size();
+		file.write((char*)&scaleCount, 4);
+		for (auto& s : channel.scales)
 		{
-			// 時間：以 Position Keys 的時間為主
-			int posIndex = std::min(k, (int)channel->mNumPositionKeys - 1);
-			float t = (float)channel->mPositionKeys[posIndex].mTime / ticksPerSecond;
-			file.write((char*)&t, 4);
-
-			// Translation
-			aiVector3D p = channel->mPositionKeys[posIndex].mValue;
-			float T[3] = { p.x, p.y, p.z };
-			file.write((char*)T, sizeof(T));
-
-			// Rotation
-			int rotIndex = std::min(k, (int)channel->mNumRotationKeys - 1);
-			aiQuaternion q = channel->mRotationKeys[rotIndex].mValue;
-			float R[4] = { q.x, q.y, q.z, q.w };
-			file.write((char*)R, sizeof(R));
-
-			// Scale
-			int sIndex = std::min(k, (int)channel->mNumScalingKeys - 1);
-			aiVector3D sc = channel->mScalingKeys[sIndex].mValue;
-			float S[3] = { sc.x, sc.y, sc.z };
-			file.write((char*)S, sizeof(S));
+			file.write((char*)&s.first, sizeof(double));
+			file.write((char*)&s.second, sizeof(XMFLOAT3));
 		}
 	}
 
 	file.close();
 }
+Animation ImportAnimation(const std::string& path)
+{
+	Animation anim;
+	std::ifstream file(path, std::ios::binary);
+	if (!file.is_open()) {
+		//std::cout << "Failed to open anim file: " << path << std::endl;
+		return anim;
+	}
 
+	// Duration & ticksPerSecond
+	file.read((char*)&anim.duration, sizeof(double));
+	file.read((char*)&anim.ticksPerSecond, sizeof(double));
+
+	// Channel count
+	int32_t channelCount = 0;
+	file.read((char*)&channelCount, sizeof(int32_t));
+
+	for (int i = 0; i < channelCount; i++)
+	{
+		AnimationChannel channel;
+
+		// Bone name
+		int32_t nameLen;
+		file.read((char*)&nameLen, sizeof(int32_t));
+
+		std::string boneName;
+		boneName.resize(nameLen);
+		file.read(&boneName[0], nameLen);
+
+		// Positions
+		int32_t posCount = 0;
+		file.read((char*)&posCount, sizeof(int32_t));
+		for (int p = 0; p < posCount; p++)
+		{
+			double t;
+			XMFLOAT3 v;
+			file.read((char*)&t, sizeof(double));
+			file.read((char*)&v, sizeof(XMFLOAT3));
+			channel.positions.push_back({ t, v });
+		}
+
+		// Rotations
+		int32_t rotCount = 0;
+		file.read((char*)&rotCount, sizeof(int32_t));
+		for (int r = 0; r < rotCount; r++)
+		{
+			double t;
+			XMFLOAT4 q;
+			file.read((char*)&t, sizeof(double));
+			file.read((char*)&q, sizeof(XMFLOAT4));
+			channel.rotations.push_back({ t, q });
+		}
+
+		// Scales
+		int32_t scaleCount = 0;
+		file.read((char*)&scaleCount, sizeof(int32_t));
+		for (int s = 0; s < scaleCount; s++)
+		{
+			double t;
+			XMFLOAT3 v;
+			file.read((char*)&t, sizeof(double));
+			file.read((char*)&v, sizeof(XMFLOAT3));
+			channel.scales.push_back({ t, v });
+		}
+
+		anim.channels[boneName] = channel;
+	}
+
+	file.close();
+	return anim;
+}
 void AddBoneWeightToVertex(Vertex& v, int idx, float w)
 {
 	for (int i = 0; i < 4; i++) {

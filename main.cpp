@@ -86,7 +86,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 			//////////////////////   UPDATE      //////////////////////
 
-			if (elapsed_time >= 1.0 / 60.0)
+			if (elapsed_time >= 1.0 / 60.0f)
 			{
 				exec_last_time = current_time;
 #pragma region 0627Mouse
