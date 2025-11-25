@@ -13,6 +13,7 @@ static ID3D11InputLayout* g_pInputLayout = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer2 = nullptr;
+static ID3D11Buffer* g_pVSConstantBuffer3 = nullptr;
 static ID3D11Buffer* g_pPSConstantBuffer0 = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
 
@@ -78,6 +79,8 @@ bool Shader_Billboard_Initialize()
 	Direct3D_GetDevice()->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer0);
 	Direct3D_GetDevice()->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer1);
 	Direct3D_GetDevice()->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer2);
+	buffer_desc.ByteWidth = sizeof(UVParameter);
+	Direct3D_GetDevice()->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer3);
 
 	// 事前コンパイル済みピクセルシェーダーの読み込み
 	std::ifstream ifs_ps("Shader_Pixel_Billboard.cso", std::ios::binary);
@@ -155,7 +158,10 @@ void Shader_Billboard_SetColor(const DirectX::XMFLOAT4 color)
 {
 	Direct3D_GetContext()->UpdateSubresource(g_pPSConstantBuffer0, 0, nullptr, &color, 0, 0);
 }
-
+void Shader_Billboard_SetUVParameter(const UVParameter& parameter)
+{
+	Direct3D_GetContext()->UpdateSubresource(g_pVSConstantBuffer3, 0, nullptr, &parameter, 0, 0);
+}
 void Shader_Billboard_Begin()
 {
 	// 頂点シェーダーとピクセルシェーダーを描画パイプラインに設定
@@ -169,6 +175,7 @@ void Shader_Billboard_Begin()
 	Direct3D_GetContext()->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer0);
 	Direct3D_GetContext()->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	Direct3D_GetContext()->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
+	Direct3D_GetContext()->VSSetConstantBuffers(4, 1, &g_pVSConstantBuffer3);
 
 	Direct3D_GetContext()->PSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
 	Sampler_SetFilterAnisotropic();

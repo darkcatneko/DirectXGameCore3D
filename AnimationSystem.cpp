@@ -131,10 +131,10 @@ XMFLOAT3 SampleScale(const AnimationChannel& c, double time)
 // ========================
 static XMMATRIX MakeLocalMatrix(const XMFLOAT3& pos, const XMFLOAT4& rot, const XMFLOAT3& scale)
 {
-    XMFLOAT4 test = { 0,0,0,1 };
+    //XMFLOAT4 test = { 0,0,0,1 };
     XMMATRIX T = XMMatrixTranslation(pos.x, pos.y, pos.z);
     //XMMATRIX T = XMMatrixTranslation(0, 0,0);
-    XMMATRIX R = XMMatrixRotationQuaternion(XMLoadFloat4(&test));
+    XMMATRIX R = XMMatrixRotationQuaternion(XMLoadFloat4(&rot));
    // XMMATRIX S = XMMatrixScaling(1,1,1);
     XMMATRIX S = XMMatrixScaling(scale.x, scale.y, scale.z);
 
@@ -178,14 +178,17 @@ void BuildSkinMatrices(const MODEL& model, std::vector<XMMATRIX>& outSkinMatrice
 void AnimationPlayer::Update(MODEL& model, double deltaTime)
 {
     const Animation& anim = model.animation;
-    double tps = (anim.ticksPerSecond != 0.0) ? anim.ticksPerSecond : 25.0;
 
     // 把 deltaTime(秒) 轉成 ticks
-    currentTime += deltaTime * tps;
+    currentTime += deltaTime;
 
-    double wrappedTime = WrapAnimationTime(currentTime, anim, loop);
+    double ticks = currentTime * anim.ticksPerSecond;
+    double duration = anim.duration; // duration in ticks
 
-    UpdateSkeleton(model, wrappedTime);
+    double timeInTicks;
+    timeInTicks = fmod(ticks, duration);
+
+    UpdateSkeleton(model, timeInTicks);
 }
 
 void ReadNodeHierarchy(MODEL& model,
@@ -216,7 +219,7 @@ void ReadNodeHierarchy(MODEL& model,
         XMFLOAT4 rot = SampleRotation(ch, animTimeInTicks);
         XMFLOAT3 scale = SampleScale(ch, animTimeInTicks);
 
-        nodeTransform = MakeLocalMatrix(pos, rot, scale);
+        nodeTransform =  MakeLocalMatrix(pos, rot, scale);
     }
     // --- 3) global = parent * local ---
     XMMATRIX globalTransform =  nodeTransform * parentTransform;

@@ -55,6 +55,7 @@ void Billboard_Update(double elapsed_time)
 
 void Billboard_Draw(int texid, DirectX::XMFLOAT3 gameobjectPos, float scale_x, float scale_y)
 {
+	Shader_Billboard_SetUVParameter({ { 0.5f,0.5f}, { 0.0f,0.0f } });
 	Shader_Billboard_Begin();
 	Shader_Billboard_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 	Texture_SetTexture(texid);

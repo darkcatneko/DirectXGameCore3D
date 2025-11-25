@@ -173,6 +173,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MeshField.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="Model_Static.cpp" />
     <ClCompile Include="Player3D.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="Sampler.cpp" />
@@ -192,6 +193,7 @@
     <ClCompile Include="MouseRenderer.cpp" />
     <ClCompile Include="NekoTool.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Shader3D_Static.cpp" />
     <ClCompile Include="ShaderField.cpp" />
     <ClCompile Include="Shader_Billboard.cpp" />
     <ClCompile Include="sprite.cpp" />
@@ -219,6 +221,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MeshField.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="Model_Static.h" />
     <ClInclude Include="Player3D.h" />
     <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="Sampler.h" />
@@ -234,6 +237,7 @@
     <ClInclude Include="MouseRenderer.h" />
     <ClInclude Include="NekoTool.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="Shader3D_Static.h" />
     <ClInclude Include="ShaderField.h" />
     <ClInclude Include="Shader_Billboard.h" />
     <ClInclude Include="sprite.h" />
@@ -247,6 +251,7 @@
     <FxCompile Include="shader_pixel_3D.hlsl" />
     <FxCompile Include="Shader_Pixel_Billboard.hlsl" />
     <FxCompile Include="shader_pixel_Field.hlsl" />
+    <FxCompile Include="shader_pixel_static.hlsl" />
     <FxCompile Include="shader_vertex_2d.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -264,6 +269,9 @@
     <FxCompile Include="shader_vertex_Field.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader_vertex_static.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

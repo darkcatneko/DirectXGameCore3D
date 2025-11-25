@@ -3,7 +3,7 @@
 #include "DirectXMath.h"
 #include "direct3d.h"
 #include "shader.h"
-#include "Shader3D.h"
+#include "Shader3D_Static.h"
 #include "Texture.h"
 using namespace DirectX;
 
@@ -174,8 +174,8 @@ void Cube_Update(double elapsed_time)
 
 void Cube_Draw(XMFLOAT3 gameobjectPos)
 {
-	Shader3D_Begin();
-	Shader3d_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	Shader3D_Static_Begin();
+	Shader3d_Static_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 	// 頂点バッファを描画パイプラインに設定
 	Texture_SetTexture(g_CubeTexTempId);
 	UINT stride = sizeof(Vertex3D);
@@ -191,7 +191,7 @@ void Cube_Draw(XMFLOAT3 gameobjectPos)
 	XMMATRIX mtxRot = XMMatrixRotationY(g_rotate);
 	XMMATRIX mtxScale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
-	Shader3D_SetWorldMatrix(mtxWorld);
+	Shader3D_Static_SetWorldMatrix(mtxWorld);
 
 
 
