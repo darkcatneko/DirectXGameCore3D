@@ -23,6 +23,9 @@
 #include "Bullet3D.h"
 #include "Billboard.h"
 #include "Shader_Billboard.h"
+#include "shader3d_unlit.h"
+#include "sky.h"
+#include "enemy.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -48,6 +51,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Shader3D_Static_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
+		Shader3DUnilt_Initialize();
 		Shader_Billboard_Initialize();
 		Sampler_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 		Texture_Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
@@ -62,7 +66,10 @@ void Scene3D_Initialize(HWND& hWnd)
 		Bullet3D_Initialize();
 		Fade_Initialize();
 		MouseRenderer_Initialize();
+		Sky_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, { 0.0f,0.0f,1.0f }, { 1.0f,0.0f,0.0f });
+		Enemy_Initialize();
+		//Enemy_Create({ 5.0f, 0.0f, 0.0f });
 		Player3D_Initialize({ 10,0,0 }, { 0,0,1 });
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
 		texid = Texture_Load(L"Grass.png");
@@ -93,7 +100,7 @@ void Scene3D_Update(double time)
 	Camera3D_Update(time);
 
 	Cube_Update(time);
-
+	Enemy_Update(time);
 	Player3D_Update(time);
 
 	Bullet3D_Update(time);
@@ -122,11 +129,12 @@ void Scene3D_Draw()
 	//Light_SetPointLight(2, { 0.0f,0.0f,2.0f }, 0.1f, { 0.0f,0.0f,1.0f });
 	//ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
 
-
+	Sky_Draw();
+	MeshField_Draw(g_meshPosition);
 	//Cube_Draw(g_cubePosition);
+	Enemy_Draw();
 	Player3D_Draw();
 	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, Camera_GetCameraPos());
-	//MeshField_Draw(g_meshPosition);
 	Bullet3D_Draw();
 	//Grid_Draw();
 	Billboard_Draw(texid, g_meshPosition, 3, 3);

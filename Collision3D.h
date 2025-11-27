@@ -1,6 +1,12 @@
-#ifndef COLLISION3D_H
+﻿#ifndef COLLISION3D_H
 #define COLLISION3D_H
 #include "DirectXMath.h"
+
+struct Sphere
+{
+	DirectX::XMFLOAT3 center; // 圆心坐标
+	float radius; // 半径
+};
 
 struct AABB
 {
@@ -24,4 +30,5 @@ struct Hit
 };
 bool Collision_IsOverlapAABB(const AABB& a, const AABB& b);
 Hit Collision_IsHitAABB(const AABB& a, const AABB& b);
+bool Collision_IsOverlapSphere(const Sphere& a, const DirectX::XMFLOAT3& point);
 #endif

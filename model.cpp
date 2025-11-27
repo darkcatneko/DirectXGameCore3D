@@ -299,7 +299,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
 	{
 		aiAnimation* anim = model->AiScene->mAnimations[i];
-		ExportAnimation(model,"Run.anim");
+		//ExportAnimation(model,"Run.anim");
 	}
 	return model;
 }
@@ -345,7 +345,10 @@ void ModelDraw(MODEL* model, GameObject* gameobject)
 	//world matrix
 		//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
-	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(gameobjectRot.x, gameobjectRot.y, gameobjectRot.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw
+		(XMConvertToRadians(gameobjectRot.x),
+		 XMConvertToRadians(gameobjectRot.y),
+		 XMConvertToRadians(gameobjectRot.z));
 	XMMATRIX mtxScale = XMMatrixScaling(gameobjectScale.x, gameobjectScale.y, gameobjectScale.z);
 	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
 	Shader3D_SetWorldMatrix(mtxWorld);

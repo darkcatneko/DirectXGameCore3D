@@ -71,3 +71,12 @@ Hit Collision_IsHitAABB(const AABB& a, const AABB& b)
 	XMStoreFloat3(&hit.normal, normal);
 	return hit;
 }
+
+bool Collision_IsOverlapSphere(const Sphere& a, const DirectX::XMFLOAT3& point)
+{
+	XMVECTOR centerA = XMLoadFloat3(&a.center);
+	XMVECTOR centerB = XMLoadFloat3(&point);
+	XMVECTOR lsq = XMVector3LengthSq(centerB - centerA);
+
+	return a.radius * a.radius > XMVectorGetX(lsq);
+}

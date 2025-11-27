@@ -6,6 +6,7 @@
 #include "WICTextureLoader11.h"
 #include "Shader3D_Static.h"
 #include "GameObject.h"
+#include "shader3d_unlit.h"
 
 using namespace DirectX;
 
@@ -279,6 +280,46 @@ void Model_Static_Draw(MODEL_STATIC* model, GameObject* gameobject)
 
 
 
+		// 頂点バッファを描画パイプラインに設定
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
+		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
+
+		// ポリゴン描画命令発行
+		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces * 3, 0, 0);
+	}
+}
+void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld)
+{
+	// シェーダーを描画パイプラインに設定
+	Shader3dUnlit_Begin();
+
+	// プリミティブトポロジ設定
+	Direct3D_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	Shader3DUnilt_SetWorldMatrix(mtxWorld);
+
+	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++) {
+
+		if (model->AiScene->mNumTextures)
+		{
+			aiString texture;
+			aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
+			aimaterial->GetTexture(aiTextureType_DIFFUSE, 0, &texture);
+			if (texture.length != 0)
+			{
+				Direct3D_GetContext()->PSSetShaderResources(0, 1, &model->Texture[texture.data]);
+			}
+		}
+		else
+		{
+			Texture_SetTexture(g_textureWhite);
+		}
+		aiMaterial* aimaterial = model->AiScene->mMaterials[model->AiScene->mMeshes[m]->mMaterialIndex];
+		aiColor3D diffuse;
+		aimaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+		Shader3DUnilt_SetColor({ diffuse.r, diffuse.g, diffuse.b, 1.0f });
 		// 頂点バッファを描画パイプラインに設定
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;

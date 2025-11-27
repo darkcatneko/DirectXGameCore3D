@@ -8,6 +8,7 @@
 #include "direct3d.h"
 #include "Player3D.h"
 #include "Shader_Billboard.h"
+#include "shader3d_unlit.h"
 using namespace DirectX;
 
 namespace 
@@ -37,7 +38,7 @@ void PlayerCamera_Update(double elapsed_time)
 
 	XMVECTOR target = position;
 
-	position = XMVectorAdd(position, { 0.0f,3.0f,-4.0f });
+	position = XMVectorAdd(position, { 0.0f,6.0f,-5.5f });
 
 
 	XMVECTOR front = XMVector3Normalize(target - position);
@@ -54,11 +55,12 @@ void PlayerCamera_Update(double elapsed_time)
 	Shader3D_SetViewMatrix(mtxView);
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
+	Shader3DUnilt_SetViewMatrix(mtxView);
 
 	constexpr float fovAngleY = DirectX::XMConvertToRadians(60.0f);
 	float aspectRatio = static_cast<float>(Direct3D_GetBackBufferWidth()) / static_cast<float>(Direct3D_GetBackBufferHeight());
 	float nearZ = 0.1f;
-	float farZ = 100.0f;
+	float farZ = 1000.0f;
 
 	DirectX::XMMATRIX mtxPerspective = DirectX::XMMatrixPerspectiveFovLH(
 		fovAngleY,
@@ -71,6 +73,7 @@ void PlayerCamera_Update(double elapsed_time)
 	Shader3D_SetProjectionMatrix(mtxPerspective);
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
+	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& PlayerCamera_GetMatrix()

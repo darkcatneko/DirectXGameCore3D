@@ -8,6 +8,7 @@
 #include "mouse.h"
 #include "PlayerCamera.h"
 #include "Shader_Billboard.h"
+#include "shader3d_unlit.h"
 using namespace DirectX;
 
 enum CameraControlStatus
@@ -25,7 +26,7 @@ static XMFLOAT3 g_CameraFront{ 0.0f,0.0f,1.0f };
 static XMFLOAT3 g_CameraUP{ 0.0f,1.0f,0.0f };
 static XMFLOAT3 g_CameraRight{ 1.0f,0.0f,0.0f };
 
-static constexpr float CAMERA_MOVE_SPEED = 80.0f;
+static constexpr float CAMERA_MOVE_SPEED = 8.0f;
 static constexpr float CAMERA_ROTATION_SPEED = XMConvertToRadians(60);
 static XMFLOAT4X4 g_CameraMatrix;
 static XMFLOAT4X4 g_CameraMatrix_Perspective;
@@ -181,6 +182,7 @@ void HAL_Camera_Movement_Update(float time)
 	Shader3D_SetViewMatrix(mtxView);
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
+	Shader3DUnilt_SetViewMatrix(mtxView);
 
 	//constexpr float fovAngleY = XMConvertToRadians(60.0f);
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
@@ -192,6 +194,7 @@ void HAL_Camera_Movement_Update(float time)
 	Shader3D_SetProjectionMatrix(mtxPerspective);
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
+	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& Camera_GetMatrix()
@@ -303,6 +306,7 @@ void CameraDragUpdate(float time)
 	Shader3D_SetViewMatrix(mtxView);
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
+	Shader3DUnilt_SetViewMatrix(mtxView);
 	
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
 	float nearZ = 0.1f;
@@ -313,4 +317,5 @@ void CameraDragUpdate(float time)
 	Shader3D_SetProjectionMatrix(mtxPerspective);
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
+	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
 }

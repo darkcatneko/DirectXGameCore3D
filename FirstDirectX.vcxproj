@@ -166,6 +166,8 @@
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Collision3D.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="enemy_normal.cpp" />
     <ClCompile Include="Game3D.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -194,8 +196,10 @@
     <ClCompile Include="NekoTool.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Shader3D_Static.cpp" />
+    <ClCompile Include="shader3d_unlit.cpp" />
     <ClCompile Include="ShaderField.cpp" />
     <ClCompile Include="Shader_Billboard.cpp" />
+    <ClCompile Include="sky.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sprite_anim.cpp" />
     <ClCompile Include="system_timer.cpp" />
@@ -214,6 +218,8 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
+    <ClInclude Include="enemy.h" />
+    <ClInclude Include="enemy_normal.h" />
     <ClInclude Include="Game3D.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Grid.h" />
@@ -238,8 +244,10 @@
     <ClInclude Include="NekoTool.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Shader3D_Static.h" />
+    <ClInclude Include="shader3d_unlit.h" />
     <ClInclude Include="ShaderField.h" />
     <ClInclude Include="Shader_Billboard.h" />
+    <ClInclude Include="sky.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sprite_anim.h" />
     <ClInclude Include="system_timer.h" />
@@ -247,6 +255,11 @@
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shader3DUnilt_Pixel.hlsl" />
+    <FxCompile Include="Shader3DUnilt_vertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shader_pixel_2d.hlsl" />
     <FxCompile Include="shader_pixel_3D.hlsl" />
     <FxCompile Include="Shader_Pixel_Billboard.hlsl" />

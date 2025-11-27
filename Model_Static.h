@@ -32,4 +32,5 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 void Model_Static_Release(MODEL_STATIC* model);
 
 void Model_Static_Draw(MODEL_STATIC* model, GameObject* gameobject);
+void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld);
 #endif
