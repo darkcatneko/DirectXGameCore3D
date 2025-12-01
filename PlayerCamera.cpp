@@ -32,24 +32,54 @@ void PlayerCamera_Finalize()
 
 void PlayerCamera_Update(double elapsed_time)
 {
-	XMVECTOR position = XMLoadFloat3(&GetPlayerPosition());
+	// =====================================================
+	// 玩家位置
+	// =====================================================
+	XMVECTOR playerPos = XMLoadFloat3(&GetPlayerPosition());
 
-	//position = XMVectorMultiply(position, { 1.0f,0.0f,1.0f });
+	// 想要的相機偏移（第三人稱）
+	// 後下 → 更穩定
+	static const XMVECTOR CAMERA_OFFSET = { 0.0f, 6.0f, -5.5f };
 
-	XMVECTOR target = position;
+	// -----------------------------------------------------
+	// 1. 計算理想相機位置
+	// -----------------------------------------------------
+	XMVECTOR desiredPos = playerPos + CAMERA_OFFSET;
 
-	position = XMVectorAdd(position, { 0.0f,6.0f,-5.5f });
+	// -----------------------------------------------------
+	// 2. 平滑移動（阻尼 SmoothDamp / Lerp）
+	// -----------------------------------------------------
+	static XMVECTOR currentCameraPos = desiredPos;
 
+	float followSpeed = 5.0f;  // 越大越貼近玩家
+	currentCameraPos = XMVectorLerp(currentCameraPos, desiredPos, followSpeed * elapsed_time);
 
-	XMVECTOR front = XMVector3Normalize(target - position);
-	DirectX::XMStoreFloat3(&g_PlayerCameraPosition, position);
-	DirectX::XMStoreFloat3(&g_PlayerCameraFront, front);
+	// -----------------------------------------------------
+	// 3. 設定 target（看著玩家，但也要平滑）
+	// -----------------------------------------------------
+	static XMVECTOR currentTarget = playerPos;
+	currentTarget = XMVectorLerp(currentTarget, playerPos, followSpeed * elapsed_time);
 
+	// -----------------------------------------------------
+	// 4. 計算相機 front
+	// -----------------------------------------------------
+	XMVECTOR front = XMVector3Normalize(currentTarget - currentCameraPos);
 
-	DirectX::XMMATRIX mtxView = DirectX::XMMatrixLookAtLH(
-		position,
-		target,
-		{ 0.0f,1.0f,0.0f });
+	// =====================================================
+	// 寫回全域
+	// =====================================================
+	XMStoreFloat3(&g_PlayerCameraPosition, currentCameraPos);
+	XMStoreFloat3(&g_PlayerCameraFront, front);
+
+	// =====================================================
+	// 生成 View Matrix
+	// =====================================================
+	XMMATRIX mtxView = XMMatrixLookAtLH(
+		currentCameraPos,
+		currentTarget,
+		{ 0, 1, 0 }
+	);
+
 
 	DirectX::XMStoreFloat4x4(&g_PlayerCameraMatrix, mtxView);
 	Shader3D_SetViewMatrix(mtxView);

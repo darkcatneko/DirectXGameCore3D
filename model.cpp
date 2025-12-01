@@ -299,7 +299,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
 	{
 		aiAnimation* anim = model->AiScene->mAnimations[i];
-		//ExportAnimation(model,"Run.anim");
+		//ExportAnimation(model,"Jump.anim");
 	}
 	return model;
 }
@@ -482,7 +482,8 @@ void ExportAnimation(MODEL* model, const std::string& outPath)
 
 	// --- duration ---
 	file.write((char*)&anim.duration, sizeof(double));
-	file.write((char*)&anim.ticksPerSecond, sizeof(double));
+	double arrange = anim.ticksPerSecond * 2.0; //調整動畫速度
+	file.write((char*)&arrange, sizeof(double));
 
 	// --- channel count ---
 	int32_t channelCount = anim.channels.size();

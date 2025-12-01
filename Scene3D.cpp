@@ -41,7 +41,7 @@ static int texid;
 void Scene3D_Initialize(HWND& hWnd)
 {
 	g_cubePosition = { 5.0f,0.0f,0.0f };
-	g_meshPosition = { 0.0f,0.0f,0.0f };
+	g_meshPosition = { 0.0f,-0.5f,0.0f };
 	switch (g_SceneEnum)
 	{
 	case Scene3D::SCENE_INIT:

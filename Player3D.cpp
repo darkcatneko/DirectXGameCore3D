@@ -15,7 +15,8 @@ using namespace DirectX;
 namespace {
 	DirectX::XMFLOAT3 g_PlayerPosition = {};
 	DirectX::XMFLOAT3 g_PlayerFront = { 0.0f,0.0f,1.0f };
-	float g_PlayerYaw = XMConvertToRadians(180);
+	DirectX::XMFLOAT3 g_PlayerDirection = {};
+	float g_PlayerYaw = XMConvertToRadians(0);
 	DirectX::XMFLOAT3 g_PlayerVelocity = {};
 	MODEL* g_pPlayerModel = nullptr;
 	bool g_IsJump = false;
@@ -23,6 +24,7 @@ namespace {
 	std::vector<DirectX::XMMATRIX> g_SkinMatrices;
 	Animation g_pPlayerAnimation_Run;
 	Animation g_pPlayerAnimation_Idle;
+	Animation g_pPlayerAnimation_Jump;
 }
 
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
@@ -30,9 +32,10 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "untitled0022.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "Untitled05.fbx", 1.0f, false);
 	g_pPlayerAnimation_Run = ImportAnimation("Run.anim");
 	g_pPlayerAnimation_Idle = ImportAnimation("Idle.anim");
+	g_pPlayerAnimation_Jump = ImportAnimation("Jump.anim");
 }
 
 void Player3D_Finalize()
@@ -47,13 +50,24 @@ void  Player3D_Update(double elapsed_time)
 	XMVECTOR gravity_velocity = {};
 
 	if (KeyLogger_IsTrigger(KK_SPACE) && !g_IsJump) {
-		player_velocity += {0.0f, 10.0f, 0.0f};
+		player_velocity += {0.0f, 8.0f, 0.0f};
 		g_IsJump = true;
+		g_AnimPlayer.currentTime = 0.0;
+		g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
 	}
 
 	//重力落下
 	DirectX::XMVECTOR gdir{ 0.0f,1.0f,0.0f };
-	player_velocity += gdir * -9.8f * 1.0f * (float)(elapsed_time);
+	float gravity = -9.8f;
+	if (XMVectorGetY(player_velocity)>0)
+	{
+		gravity = -1.8f;
+	}
+	else
+	{
+		gravity = -20.8f;
+	}
+	player_velocity += gdir * gravity * 1.0f * (float)(elapsed_time);
 	gravity_velocity = player_velocity * (float)elapsed_time;
 	player_pos += gravity_velocity;
 
@@ -73,16 +87,26 @@ void  Player3D_Update(double elapsed_time)
 				//player_pos -= gravity_velocity;
 				player_pos = XMVectorSetY(player_pos, Object.max.y );
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
+				if (g_IsJump)
+				{
+					g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+
+				}
 				g_IsJump = false;
 			}
 		}
 	}
 
 	//有撞到地面嗎
-	if (DirectX::XMVectorGetY(player_pos) <= 0.0f)
+	if (DirectX::XMVectorGetY(player_pos) <= -0.5f)
 	{
-		player_pos = XMVectorSetY(player_pos, 0.0f);
+		player_pos = XMVectorSetY(player_pos, -0.5f);
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
+		if (g_IsJump)
+		{
+		g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+
+		}
 		g_IsJump = false;
 	}
 
@@ -90,7 +114,12 @@ void  Player3D_Update(double elapsed_time)
 
 
 	DirectX::XMVECTOR direction{};
-	DirectX::XMVECTOR front = DirectX::XMLoadFloat3(&GetPlayerFront()) * XMVECTOR { 1, 0, 1 };
+	if (g_IsJump)
+	{
+		direction = XMLoadFloat3(&g_PlayerDirection);
+	}
+	auto camFront = Camera_GetFrontVector();
+	DirectX::XMVECTOR front = DirectX::XMLoadFloat3(&camFront) * XMVECTOR { 1, 0, 1 };
 
 	if (KeyLogger_IsPressed(KK_I)) {
 		direction += front;
@@ -100,12 +129,24 @@ void  Player3D_Update(double elapsed_time)
 		direction -= front;
 	}
 
+
 	if (KeyLogger_IsPressed(KK_L)) {
 		direction += DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
+		//g_PlayerYaw += 2.0f * elapsed_time;
 	}
 
 	if (KeyLogger_IsPressed(KK_J)) {
 		direction -= DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
+		//g_PlayerYaw -= 2.0f * elapsed_time;
+	}
+
+	if (g_IsJump)
+	{
+		XMStoreFloat3(&g_PlayerDirection, direction);
+	}
+	else
+	{
+		g_PlayerDirection = { 0.0f,0.0f,0.0f };
 	}
 
 
@@ -115,14 +156,14 @@ void  Player3D_Update(double elapsed_time)
 	{
 		XMFLOAT3 dir;
 		XMStoreFloat3(&dir, direction);
+		
 
 		// direction 參考 front = (0,0,1)
-		float targetYaw = atan2f(dir.z,dir.x);
+		float targetYaw = atan2f(dir.x, dir.z);
+	
 
-		// 修正起始 yaw = 180° 的 offset
-		targetYaw += XM_2PI;  // ★★★ 最關鍵修正 ★★★
-
-		float delta = targetYaw - g_PlayerYaw;
+		//float delta = targetYaw - g_PlayerYaw;
+		float delta = fmodf(targetYaw - g_PlayerYaw + XM_PI, XM_2PI) - XM_PI;
 
 		if (delta > XM_PI)  delta -= XM_2PI;
 		if (delta < -XM_PI) delta += XM_2PI;
@@ -184,7 +225,7 @@ void  Player3D_Update(double elapsed_time)
 	}
 	if (KeyLogger_IsTrigger(KK_N))
 	{
-		g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+		g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
 	}if (KeyLogger_IsTrigger(KK_M))
 	{
 		g_pPlayerModel->animation = g_pPlayerAnimation_Idle;
@@ -205,7 +246,7 @@ void Player3D_Draw()
 		g_PlayerPosition.y,
 		g_PlayerPosition.z
 	);
-	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw),0}, { 0.01f,0.01f,0.01f }));
+	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw)+180,0}, { 0.01f,0.01f,0.01f }));
 	Map_Draw();
 	Cube_Draw({ g_PlayerPosition.x,g_PlayerPosition.y+0.5f,g_PlayerPosition.z });
 }
@@ -235,3 +276,4 @@ AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
 	XMStoreFloat3(&aabb.max, position + XMVECTOR{ 0.5f,0.5f,0.5f });
 	return aabb;
 }
+////////////
