@@ -11,7 +11,7 @@
 #include "Bullet3D.h"
 #include "AnimationSystem.h"
 using namespace DirectX;
-
+constexpr float EPSILON = 0.0001f;
 namespace {
 	DirectX::XMFLOAT3 g_PlayerPosition = {};
 	DirectX::XMFLOAT3 g_PlayerFront = { 0.0f,0.0f,1.0f };
@@ -19,12 +19,14 @@ namespace {
 	float g_PlayerYaw = XMConvertToRadians(0);
 	DirectX::XMFLOAT3 g_PlayerVelocity = {};
 	MODEL* g_pPlayerModel = nullptr;
+	bool g_IsRun = false;
 	bool g_IsJump = false;
-	AnimationPlayer g_AnimPlayer;
+	Animator g_Animator;
 	std::vector<DirectX::XMMATRIX> g_SkinMatrices;
 	Animation g_pPlayerAnimation_Run;
 	Animation g_pPlayerAnimation_Idle;
 	Animation g_pPlayerAnimation_Jump;
+	Animation g_pPlayerAnimation_Throw;
 }
 
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
@@ -32,10 +34,16 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "Untitled05.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "Throw.fbx", 1.0f, false);
 	g_pPlayerAnimation_Run = ImportAnimation("Run.anim");
 	g_pPlayerAnimation_Idle = ImportAnimation("Idle.anim");
 	g_pPlayerAnimation_Jump = ImportAnimation("Jump.anim");
+	g_pPlayerAnimation_Throw = ImportAnimation("Throw.anim");
+	g_Animator.Register("Idle", &g_pPlayerAnimation_Idle);
+	g_Animator.Register("Run", &g_pPlayerAnimation_Run,true,0.5f);
+	g_Animator.Register("Jump", &g_pPlayerAnimation_Jump, false, 0.42f);
+	g_Animator.Register("Throw", &g_pPlayerAnimation_Throw, false,0.5f);
+	g_Animator.Initialize("Idle");
 }
 
 void Player3D_Finalize()
@@ -46,14 +54,14 @@ void Player3D_Finalize()
 void  Player3D_Update(double elapsed_time)
 {
 	XMVECTOR player_pos = DirectX::XMLoadFloat3(&g_PlayerPosition);
-	XMVECTOR player_velocity = DirectX::XMLoadFloat3(&g_PlayerVelocity);
+	XMVECTOR player_velocity = DirectX::XMLoadFloat3(&g_PlayerVelocity);	
 	XMVECTOR gravity_velocity = {};
 
 	if (KeyLogger_IsTrigger(KK_SPACE) && !g_IsJump) {
 		player_velocity += {0.0f, 8.0f, 0.0f};
 		g_IsJump = true;
-		g_AnimPlayer.currentTime = 0.0;
-		g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
+		//g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
+		g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Jump", 0.15f);
 	}
 
 	//重力落下
@@ -89,7 +97,17 @@ void  Player3D_Update(double elapsed_time)
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 				if (g_IsJump)
 				{
-					g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+					auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+					float size = XMVectorGetX(XMVector3Length(speedtest));
+					if (size <= 0.01f)
+					{
+						g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
+					}
+					else
+					{
+						g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
+
+					}
 
 				}
 				g_IsJump = false;
@@ -104,7 +122,18 @@ void  Player3D_Update(double elapsed_time)
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
 		if (g_IsJump)
 		{
-		g_pPlayerModel->animation = g_pPlayerAnimation_Run;
+			auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+			float size = XMVectorGetX(XMVector3Length(speedtest));
+			if (size <= 0.01f)
+			{
+				g_IsRun = false;
+				g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
+			}
+			else
+			{
+				g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
+
+			}
 
 		}
 		g_IsJump = false;
@@ -123,20 +152,39 @@ void  Player3D_Update(double elapsed_time)
 
 	if (KeyLogger_IsPressed(KK_I)) {
 		direction += front;
+		if (!g_IsRun)
+		{
+			g_IsRun = true;
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+		}
 	}
 
 	if (KeyLogger_IsPressed(KK_K)) {
 		direction -= front;
+		if (!g_IsRun)
+		{
+			g_IsRun = true;
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+		}
 	}
 
 
 	if (KeyLogger_IsPressed(KK_L)) {
 		direction += DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
+		if (!g_IsRun)
+		{
+			g_IsRun = true;
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+		}
 		//g_PlayerYaw += 2.0f * elapsed_time;
 	}
 
 	if (KeyLogger_IsPressed(KK_J)) {
 		direction -= DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
+		if (!g_IsRun)
+		{
+			g_IsRun = true; g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+		}
 		//g_PlayerYaw -= 2.0f * elapsed_time;
 	}
 
@@ -171,6 +219,7 @@ void  Player3D_Update(double elapsed_time)
 		float turnSpeed = 10.0f;
 		g_PlayerYaw += delta * turnSpeed * (float)elapsed_time;
 	}
+	
 	XMVECTOR newFront =
 		XMVector3Normalize(XMVectorSet(sinf(g_PlayerYaw), 0, cosf(g_PlayerYaw), 0));
 
@@ -179,6 +228,7 @@ void  Player3D_Update(double elapsed_time)
 	player_velocity += direction * (float)(2000.0 / 100.0 * elapsed_time);
 
 	player_velocity += -player_velocity * (float)(7.5 * elapsed_time);
+
 	player_pos += player_velocity * (float)elapsed_time;
 
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
@@ -218,20 +268,29 @@ void  Player3D_Update(double elapsed_time)
 
 		DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
 		DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
+		
 	}
-	if (KeyLogger_IsTrigger(KK_SPACE))
+	if (KeyLogger_IsTrigger(KK_F))
 	{
 		Bullet3D_CreateBullet(g_PlayerPosition, g_PlayerFront);
+		g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Throw", 0.0f);
 	}
 	if (KeyLogger_IsTrigger(KK_N))
 	{
-		g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
+		g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.5f);
 	}if (KeyLogger_IsTrigger(KK_M))
 	{
 		g_pPlayerModel->animation = g_pPlayerAnimation_Idle;
 	}
+	auto speedtest = XMLoadFloat3(&g_PlayerVelocity)* XMVECTOR{1,0,1};
+	float size = XMVectorGetX(XMVector3Length(speedtest));
+	if (size<=0.5f&&g_IsRun)
+	{
+		g_IsRun = false; 
+		g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.35f);
+	}
 	// 更新動畫
-	g_AnimPlayer.Update(*g_pPlayerModel, elapsed_time);  // 會更新每個 bone.finalTransform
+	g_Animator.Update(g_Animator,*g_pPlayerModel, elapsed_time);  // 會更新每個 bone.finalTransform
 	// 組 Skin Matrix 陣列
 	BuildSkinMatrices(*g_pPlayerModel, g_SkinMatrices);
 
@@ -276,4 +335,4 @@ AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
 	XMStoreFloat3(&aabb.max, position + XMVECTOR{ 0.5f,0.5f,0.5f });
 	return aabb;
 }
-////////////
+//////////////////////////////////

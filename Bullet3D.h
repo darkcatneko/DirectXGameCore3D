@@ -12,11 +12,7 @@ private:
 
 public:
 	Bullet3D(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& velocity) :m_position(position), m_velocity(velocity) {}
-	void Update(double elasped_time) 
-	{
-		m_accumulatedTime += elasped_time;
-		DirectX::XMStoreFloat3(&m_position, DirectX::XMVectorAdd( DirectX::XMLoadFloat3(&m_position) ,DirectX::XMLoadFloat3(&m_velocity)));
-	}
+	void Update(double elasped_time);
 	const DirectX::XMFLOAT3& GetPosition() const
 	{
 		return m_position;

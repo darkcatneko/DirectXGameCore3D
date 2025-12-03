@@ -299,7 +299,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
 	{
 		aiAnimation* anim = model->AiScene->mAnimations[i];
-		//ExportAnimation(model,"Jump.anim");
+		//ExportAnimation(model,"Throw.anim");
 	}
 	return model;
 }
@@ -421,6 +421,11 @@ void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex, XMMATRI
 	{
 		BuildSkeletonHierarchy(model, node->mChildren[i], currentBoneIndex,global);
 	}
+}
+
+XMVECTOR Lerp(const XMVECTOR& a, const XMVECTOR& b, float t)
+{
+	return a + (b - a) * t;
 }
 
 void SaveSkeletonAsJSON(const MODEL* model, const std::string& path)

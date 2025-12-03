@@ -157,6 +157,17 @@ void UpdateSkeleton(MODEL& model, double animTimeInTicks)
         identity);
 }
 
+void UpdateSkeletonBlended(MODEL& model, double timeA, double timeB, double alpha)
+{
+    if (!model.AiScene || model.bones.empty())
+        return;
+
+    XMMATRIX identity = XMMatrixIdentity();
+	ReadNodeHierarchyBlend(model, timeA, timeB, alpha,
+        model.AiScene->mRootNode, \
+        identity);
+}
+
 // ========================
 // 組合成丟去 shader 用的 matrix 陣列
 // ========================
@@ -240,4 +251,161 @@ void ReadNodeHierarchy(MODEL& model,
         ReadNodeHierarchy(model, animTimeInTicks,
             node->mChildren[i], globalTransform);
     }
+}
+
+void ReadNodeHierarchyBlend(MODEL& model, double animA, double animB, double alpha, const aiNode* node, const DirectX::XMMATRIX& parentTransform)
+{
+    std::string nodeName = node->mName.C_Str();
+
+    // --- 1) bind pose local transform ---
+    XMMATRIX nodeTransform = AiToXMMATRIX(node->mTransformation);
+
+    // --- 2) 如果有動畫通道，用動畫覆蓋 ---
+    auto it = model.animation.channels.find(nodeName);
+    auto it2 = model.animation2.channels.find(nodeName);
+    bool hasAnimation = (it != model.animation.channels.end());
+    bool isSkinBone = (model.boneIndex.count(nodeName) > 0);
+    XMMATRIX bindLocal = AiToXMMATRIX(node->mTransformation);
+
+    // 預設 = bind pose
+    nodeTransform = bindLocal;
+
+    // 如果這個 bone 真的是 skin bone → 才套動畫
+    if (isSkinBone && hasAnimation)
+    {
+        const AnimationChannel& chA = it->second;
+        const AnimationChannel& chB = it2->second;
+
+        XMFLOAT3 posA = SamplePosition(chA, animA);
+        XMFLOAT3 posB = SamplePosition(chB, animB);
+		XMVECTOR vecposA = XMLoadFloat3(&posA);
+		XMVECTOR vecposB = XMLoadFloat3(&posB);
+        XMVECTOR vecpos = Lerp(vecposA, vecposB, alpha);
+        XMFLOAT3 pos;
+		XMStoreFloat3(&pos, vecpos);
+        XMFLOAT4 rotA = SampleRotation(chA, animA);
+        XMFLOAT4 rotB = SampleRotation(chB, animB);
+
+        XMVECTOR qA = XMLoadFloat4(&rotA);
+        XMVECTOR qB = XMLoadFloat4(&rotB);
+        // normalize (非常重要)
+        qA = XMQuaternionNormalize(qA);
+        qB = XMQuaternionNormalize(qB);
+
+        // shortest path fix
+        float dotQ = XMVectorGetX(XMVector3Dot(qA, qB));
+        if (dotQ < 0.0f)
+        {
+            qB = XMVectorScale(qB, -1.0f);
+        }
+        XMVECTOR q = XMQuaternionSlerp(qA, qB, alpha);
+        q = XMQuaternionNormalize(q);
+        XMFLOAT4 rot;
+        XMStoreFloat4(&rot, q);
+        XMFLOAT3 scaleA = SampleScale(chA, animA);
+        XMFLOAT3 scaleB = SampleScale(chB, animB);
+		XMVECTOR vecscaleA = XMLoadFloat3(&scaleA);
+		XMVECTOR vecscaleB = XMLoadFloat3(&scaleB);
+		XMVECTOR vecscale = Lerp(vecscaleA, vecscaleB, alpha);
+        XMFLOAT3 scale;
+		XMStoreFloat3(&scale, vecscale);
+
+        nodeTransform = MakeLocalMatrix(pos, rot, scale);
+    }
+    // --- 3) global = parent * local ---
+    XMMATRIX globalTransform = nodeTransform * parentTransform;
+
+    // --- 4) 如果這是 bone，更新 finalTransform ---
+    auto boneIt = model.boneIndex.find(nodeName);
+    if (boneIt != model.boneIndex.end())
+    {
+        int boneIndex = boneIt->second;
+        Bone& bone = model.bones[boneIndex];
+
+        bone.finalTransform = bone.offsetMatrix * globalTransform;
+    }
+
+    // --- 5) 遞迴子節點 ---
+    for (unsigned int i = 0; i < node->mNumChildren; ++i)
+    {
+		ReadNodeHierarchyBlend(model, animA, animB, alpha,
+            node->mChildren[i], globalTransform);
+    }
+}
+
+void Animator::Register(const std::string& name, Animation* anim, bool loop, double speed)
+{
+    AnimState st;
+    st.name = name;
+    st.clip.anim = anim;
+    st.clip.loop = loop;
+    st.clip.speed = speed;
+
+    states[name] = st;
+}
+
+void Animator::Initialize(const std::string& defaultState)
+{
+	current = defaultState;
+}
+
+void Animator::CrossFade(MODEL& model,Animator& animator, const std::string& target, float fadeTime)
+{
+    animator.next = target;   
+    animator.timeNext = 0.0f;
+    animator.blend = 0.0f;
+    animator.blendSpeed = 1.0f / fadeTime;
+	model.animation2 = *animator.states[target].clip.anim;
+}
+
+void Animator::CrossFadeToZero(MODEL& model, Animator& animator, const std::string& target, float fadeTime)
+{
+    animator.next = target;
+    //animator.timeCurrent = 0.0f;
+    animator.timeNext = 0.0f;
+	zeroTransition = true;
+    animator.blend = 0.0f;
+    animator.blendSpeed = 1.0f / fadeTime;
+    model.animation2 = *animator.states[target].clip.anim;
+}
+
+void Animator::Update(Animator& animator, MODEL& model, double deltaTime)
+{
+    // 1) 更新動畫時間
+    AnimState& A = animator.states[animator.current];
+    animator.timeCurrent += deltaTime * A.clip.speed * A.clip.anim->ticksPerSecond;
+
+    if (A.clip.loop)
+        animator.timeCurrent = fmod(animator.timeCurrent, A.clip.anim->duration);
+
+    if (!animator.next.empty())
+    {
+        // crossfade 模式
+        AnimState& B = animator.states[animator.next];
+        animator.timeNext += deltaTime * B.clip.speed * B.clip.anim->ticksPerSecond;
+
+        if (B.clip.loop)
+            animator.timeNext = fmod(animator.timeNext, B.clip.anim->duration);
+
+        // blending
+        animator.blend += animator.blendSpeed * deltaTime;
+
+        if (animator.blend >= 1.0f)
+        {
+			model.animation = *B.clip.anim;            
+            animator.current = animator.next;
+            animator.next = "";
+            if (animator.zeroTransition)
+            {
+			    animator.timeCurrent = animator.timeNext + deltaTime * A.clip.speed * A.clip.anim->ticksPerSecond;
+                animator.zeroTransition = false;
+            }
+        }
+    }
+
+    // 2) 呼叫骨架更新
+    if (animator.next.empty())
+        UpdateSkeleton(model, animator.timeCurrent);
+    else
+        UpdateSkeletonBlended(model, animator.timeCurrent, animator.timeNext, animator.blend);
 }

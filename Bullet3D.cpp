@@ -1,5 +1,7 @@
 #include "model_Static.h"
 #include "Bullet3D.h"
+#include "DirectXMath.h"
+using namespace DirectX;
 static Bullet3D* g_pBullets[MAX_BULLET]{};
 static int g_BulletsCount{ 0 };
 static MODEL_STATIC* bullet_model;
@@ -68,4 +70,10 @@ AABB Bullet_GetAABB(int index)
 		{ g_pBullets[index]->GetPosition().x + 0.05f, g_pBullets[index]->GetPosition().y + 0.05f,g_pBullets[index]->GetPosition().z + 0.05f},
 		{ g_pBullets[index]->GetPosition().x - 0.05f, g_pBullets[index]->GetPosition().y - 0.05f,g_pBullets[index]->GetPosition().z - 0.05f}
 	};
+}
+
+void Bullet3D::Update(double elasped_time)
+{
+	m_accumulatedTime += elasped_time;
+	DirectX::XMStoreFloat3(&m_position, DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&m_position), DirectX::XMLoadFloat3(&m_velocity)*0.5f));
 }

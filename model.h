@@ -38,6 +38,7 @@ struct MODEL
 	std::vector<Bone> bones;
 	std::unordered_map<std::string, int> boneIndex;
 	Animation animation;
+	Animation animation2;
 
 
 
@@ -56,11 +57,7 @@ void ModelDraw(MODEL* model, GameObject* gameobject);
 DirectX::XMMATRIX AiToXMMATRIX(const aiMatrix4x4& m);
 void BuildSkeletonHierarchy(MODEL* model, aiNode* node, int parentIndex, DirectX::XMMATRIX parentTransform);
 
-template <typename T>
-T Lerp(const T& a, const T& b, float t)
-{
-	return a + (b - a) * t;
-}
+DirectX::XMVECTOR Lerp(const DirectX::XMVECTOR& a, const DirectX::XMVECTOR& b, float t);
 
 void SaveSkeletonAsJSON(const MODEL* model, const std::string& path);
 void ExportAnimation(MODEL* model, const std::string& outPath);
