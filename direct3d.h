@@ -12,6 +12,7 @@
 
 #include <Windows.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
 
 
 // セーフリリースマクロ
@@ -30,4 +31,6 @@ unsigned int Direct3D_GetBackBufferHeight();
 unsigned int Direct3D_GetBackBufferWidth();
 
 void Direct3D_SetDepthEnable(bool enable);
+DirectX::XMMATRIX Direct3D_MatrixViewport();
+DirectX::XMFLOAT3 Direct3D_ScreenToWorld(float screen_x, float screen_y, float depth, const DirectX::XMFLOAT4X4 & view, const DirectX::XMFLOAT4X4 & proj);
 #endif // DIRECT3D_H

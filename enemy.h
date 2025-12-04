@@ -15,7 +15,7 @@ class Enemy {
 protected:
 	class State {
 	public:
-		virtual ~State() = default;
+		virtual ~State() = default;		
 		virtual void Update(double elapsed_time) = 0;
 		virtual void Draw() const = 0;
 	};

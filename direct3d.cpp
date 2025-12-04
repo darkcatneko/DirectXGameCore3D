@@ -9,6 +9,8 @@
 #include <d3d11.h>
 #include "direct3d.h"
 #include "debug_ostream.h"
+#include "DirectXMath.h"
+using namespace DirectX;
 
 #pragma comment(lib, "d3d11.lib")
 // #pragma comment(lib, "dxgi.lib")
@@ -303,4 +305,36 @@ void releaseBackBuffer()
 		g_pDepthStencilView->Release();
 		g_pDepthStencilView = nullptr;
 	}*/
+}
+
+DirectX::XMMATRIX Direct3D_MatrixViewport()
+{
+	float half_width =  Direct3D_GetBackBufferWidth()  * 0.5f;
+	float half_height = Direct3D_GetBackBufferHeight() * 0.5f;
+	float max_depth = g_Viewport.MaxDepth;
+	float min_depth = g_Viewport.MinDepth;
+
+	return XMMATRIX(
+		half_width,			0.0f,					 0.0f, 0.0f,
+		0.0f,		-half_height,					 0.0f, 0.0f,
+		0.0f,				0.0f, (max_depth - min_depth), 0.0f,
+		half_width,	 half_height,			    min_depth, 1.0f
+	);
+}
+DirectX::XMFLOAT3 Direct3D_ScreenToWorld(float screen_x, float screen_y, float depth, const DirectX::XMFLOAT4X4& view,const DirectX::XMFLOAT4X4& proj)
+{
+	XMMATRIX xview = XMLoadFloat4x4(&view);
+	XMMATRIX xproj = XMLoadFloat4x4(&proj);
+	XMVECTOR xpoint = XMVectorSet(screen_x, screen_y, depth, 1.0f);
+
+	XMMATRIX inv{ XMMatrixInverse(nullptr,xview * xproj * Direct3D_MatrixViewport()) };
+
+	xpoint = XMVector3TransformCoord(xpoint, inv);
+
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, xpoint);
+
+	return ret;
+
+
 }

@@ -27,6 +27,8 @@ namespace {
 	Animation g_pPlayerAnimation_Idle;
 	Animation g_pPlayerAnimation_Jump;
 	Animation g_pPlayerAnimation_Throw;
+
+	PlayerStateMachine* g_PlayerStateMachine = nullptr;
 }
 
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
@@ -34,7 +36,7 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_PlayerPosition = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "Throw.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "untitled0022.fbx", 1.0f, false);
 	g_pPlayerAnimation_Run = ImportAnimation("Run.anim");
 	g_pPlayerAnimation_Idle = ImportAnimation("Idle.anim");
 	g_pPlayerAnimation_Jump = ImportAnimation("Jump.anim");
@@ -44,6 +46,8 @@ void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOA
 	g_Animator.Register("Jump", &g_pPlayerAnimation_Jump, false, 0.42f);
 	g_Animator.Register("Throw", &g_pPlayerAnimation_Throw, false,0.5f);
 	g_Animator.Initialize("Idle");
+
+	g_PlayerStateMachine = new PlayerStateMachine();
 }
 
 void Player3D_Finalize()
@@ -53,6 +57,8 @@ void Player3D_Finalize()
 
 void  Player3D_Update(double elapsed_time)
 {
+	g_PlayerStateMachine->UpdateState();
+	g_PlayerStateMachine->Update(elapsed_time);
 	XMVECTOR player_pos = DirectX::XMLoadFloat3(&g_PlayerPosition);
 	XMVECTOR player_velocity = DirectX::XMLoadFloat3(&g_PlayerVelocity);	
 	XMVECTOR gravity_velocity = {};
@@ -61,7 +67,7 @@ void  Player3D_Update(double elapsed_time)
 		player_velocity += {0.0f, 8.0f, 0.0f};
 		g_IsJump = true;
 		//g_pPlayerModel->animation = g_pPlayerAnimation_Jump;
-		g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Jump", 0.15f);
+		g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Jump", 0.15f);	
 	}
 
 	//重力落下
@@ -97,7 +103,7 @@ void  Player3D_Update(double elapsed_time)
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 				if (g_IsJump)
 				{
-					auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+					/*auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
 					float size = XMVectorGetX(XMVector3Length(speedtest));
 					if (size <= 0.01f)
 					{
@@ -107,7 +113,7 @@ void  Player3D_Update(double elapsed_time)
 					{
 						g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
 
-					}
+					}*/
 
 				}
 				g_IsJump = false;
@@ -122,18 +128,17 @@ void  Player3D_Update(double elapsed_time)
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
 		if (g_IsJump)
 		{
-			auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+			/*auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
 			float size = XMVectorGetX(XMVector3Length(speedtest));
-			if (size <= 0.01f)
+			if (size <= 0.01f || !(KeyLogger_IsPressed(KK_I)|| KeyLogger_IsPressed(KK_J)||KeyLogger_IsPressed(KK_K)|| KeyLogger_IsPressed(KK_L)))
 			{
-				g_IsRun = false;
 				g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
 			}
 			else
 			{
 				g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
 
-			}
+			}*/
 
 		}
 		g_IsJump = false;
@@ -155,7 +160,7 @@ void  Player3D_Update(double elapsed_time)
 		if (!g_IsRun)
 		{
 			g_IsRun = true;
-			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+			//g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
 		}
 	}
 
@@ -164,7 +169,7 @@ void  Player3D_Update(double elapsed_time)
 		if (!g_IsRun)
 		{
 			g_IsRun = true;
-			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+			//g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
 		}
 	}
 
@@ -174,7 +179,7 @@ void  Player3D_Update(double elapsed_time)
 		if (!g_IsRun)
 		{
 			g_IsRun = true;
-			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+			//g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
 		}
 		//g_PlayerYaw += 2.0f * elapsed_time;
 	}
@@ -183,7 +188,7 @@ void  Player3D_Update(double elapsed_time)
 		direction -= DirectX::XMVector3Cross({ 0.0f,1.0f,0.0f }, front);
 		if (!g_IsRun)
 		{
-			g_IsRun = true; g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
+			//g_IsRun = true; g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.25f);
 		}
 		//g_PlayerYaw -= 2.0f * elapsed_time;
 	}
@@ -282,13 +287,7 @@ void  Player3D_Update(double elapsed_time)
 	{
 		g_pPlayerModel->animation = g_pPlayerAnimation_Idle;
 	}
-	auto speedtest = XMLoadFloat3(&g_PlayerVelocity)* XMVECTOR{1,0,1};
-	float size = XMVectorGetX(XMVector3Length(speedtest));
-	if (size<=0.5f&&g_IsRun)
-	{
-		g_IsRun = false; 
-		g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.35f);
-	}
+	
 	// 更新動畫
 	g_Animator.Update(g_Animator,*g_pPlayerModel, elapsed_time);  // 會更新每個 bone.finalTransform
 	// 組 Skin Matrix 陣列
@@ -336,3 +335,123 @@ AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
 	return aabb;
 }
 //////////////////////////////////
+
+void StateMachine::Update(double elapsed_time)
+{
+	
+	m_pState->Update(elapsed_time);
+}
+
+void StateMachine::Draw() const
+{
+	m_pState->Draw();
+}
+
+void StateMachine::UpdateState()
+{
+	if (m_pNextState != m_pState) {
+		if (m_pState!= NULL)
+		{
+		m_pState->OutState();
+		}
+		delete m_pState;
+		m_pState = m_pNextState;
+		m_pState->InState();
+	}
+}
+
+void StateMachine::ChangeState(State* pNext)
+{
+	//if (m_pState == NULL)
+	//{
+	//	m_pState= pNext;
+	//}
+	//else if(m_pState != pNext)
+	//{
+		m_pNextState = pNext;
+	//}
+}
+
+void PlayerStateMachine::PlayerRunState::Update(double elapsed_time)
+{
+	auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+	float size = XMVectorGetX(XMVector3Length(speedtest));
+	if (size <= 0.5f)
+	{
+		g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.1f);
+		m_pOwner->ChangeState(new PlayerIdleState(m_pOwner));
+	}
+	if (KeyLogger_IsTrigger(KK_SPACE) && !g_IsJump) {
+		m_pOwner->ChangeState(new PlayerJumpState(m_pOwner));
+	}
+}
+
+void PlayerStateMachine::PlayerRunState::Draw() const
+{
+}
+
+void PlayerStateMachine::PlayerRunState::InState()
+{
+}
+
+void PlayerStateMachine::PlayerRunState::OutState()
+{
+}
+
+void PlayerStateMachine::PlayerIdleState::Update(double elapsed_time)
+{
+	auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+	float size = XMVectorGetX(XMVector3Length(speedtest));
+	if (size >= 0.5f && (KeyLogger_IsPressed(KK_I) || KeyLogger_IsPressed(KK_J) || KeyLogger_IsPressed(KK_K) || KeyLogger_IsPressed(KK_L)))
+	{
+		g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.1f);
+		m_pOwner->ChangeState(new PlayerRunState(m_pOwner));
+	}
+	if (KeyLogger_IsTrigger(KK_SPACE) && !g_IsJump) {
+		m_pOwner->ChangeState(new PlayerJumpState(m_pOwner));
+	}
+}
+
+void PlayerStateMachine::PlayerIdleState::Draw() const
+{
+}
+
+void PlayerStateMachine::PlayerIdleState::InState()
+{
+}
+
+void PlayerStateMachine::PlayerIdleState::OutState()
+{
+}
+
+void PlayerStateMachine::PlayerJumpState::Update(double elapsed_time)
+{
+	if (g_IsJump == false)
+	{
+		auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+		float size = XMVectorGetX(XMVector3Length(speedtest));
+		if (size <= 0.01f || !(KeyLogger_IsPressed(KK_I) || KeyLogger_IsPressed(KK_J) || KeyLogger_IsPressed(KK_K) || KeyLogger_IsPressed(KK_L)))
+		{
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
+			m_pOwner->ChangeState(new PlayerIdleState(m_pOwner));
+		}
+		else
+		{
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
+			m_pOwner->ChangeState(new PlayerRunState(m_pOwner));
+		}
+	}
+}
+
+void PlayerStateMachine::PlayerJumpState::Draw() const
+{
+}
+
+void PlayerStateMachine::PlayerJumpState::InState()
+{
+}
+
+void PlayerStateMachine::PlayerJumpState::OutState()
+{
+}
+//////////////////////

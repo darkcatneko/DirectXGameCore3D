@@ -12,7 +12,8 @@
 #include "enemy.h"
 #include <DirectXMath.h>
 
-class EnemyNormal : public Enemy {
+class EnemyNormal : public Enemy 
+{
 private:
 	DirectX::XMFLOAT3 m_Position{};
 	float m_DetectionRadius{ 3.0f };
