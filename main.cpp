@@ -99,6 +99,11 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 				Scene3D_Update(elapsed_time);
 				SpriteAnim_Update(elapsed_time);
 				Fade_Update(elapsed_time);
+
+			/*	Direct3D_SetOffscreen();
+				Sprite_Begin();
+				Scene3D_Draw();*/
+
 				Direct3D_Clear();
 				Sprite_Begin();
 
@@ -141,3 +146,4 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 //Window Procedure
 
 
+//////

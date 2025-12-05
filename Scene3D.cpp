@@ -129,6 +129,8 @@ void Scene3D_Draw()
 	//Light_SetPointLight(2, { 0.0f,0.0f,2.0f }, 0.1f, { 0.0f,0.0f,1.0f });
 	//ModelDraw(g_pModelTest, { 0.0,0.0,0.0 });
 
+	
+
 	Sky_Draw();
 	MeshField_Draw(g_meshPosition);
 	//Cube_Draw(g_cubePosition);
