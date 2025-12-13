@@ -9,6 +9,7 @@
 #include "Player3D.h"
 #include "Shader_Billboard.h"
 #include "shader3d_unlit.h"
+#include "ShaderField.h"
 using namespace DirectX;
 
 namespace 
@@ -86,6 +87,7 @@ void PlayerCamera_Update(double elapsed_time)
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
 	Shader3DUnilt_SetViewMatrix(mtxView);
+	ShaderField_SetViewMatrix(mtxView);
 
 	constexpr float fovAngleY = DirectX::XMConvertToRadians(60.0f);
 	float aspectRatio = static_cast<float>(Direct3D_GetBackBufferWidth()) / static_cast<float>(Direct3D_GetBackBufferHeight());
@@ -104,6 +106,7 @@ void PlayerCamera_Update(double elapsed_time)
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
+	ShaderField_SetProjectionMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& PlayerCamera_GetMatrix()

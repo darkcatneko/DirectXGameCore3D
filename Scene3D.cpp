@@ -26,6 +26,9 @@
 #include "shader3d_unlit.h"
 #include "sky.h"
 #include "enemy.h"
+#include "Light_Camera.h"
+#include "ShaderField.h"
+#include "circle_shadow.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -36,7 +39,9 @@ static XMFLOAT3 g_cubeVelocity;
 //Test MODEL
 static MODEL* g_pModelTest = nullptr;
 
+
 static int texid;
+void LightRendering();
 
 void Scene3D_Initialize(HWND& hWnd)
 {
@@ -71,8 +76,10 @@ void Scene3D_Initialize(HWND& hWnd)
 		Enemy_Initialize();
 		//Enemy_Create({ 5.0f, 0.0f, 0.0f });
 		Player3D_Initialize({ 10,0,0 }, { 0,0,1 });
+		LightCamera_Initialize(GetPlayerFront(), {0,10,-5});
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
 		texid = Texture_Load(L"Grass.png");
+		CircleShadow_Initialize();
 		break;
 	default:
 		break;
@@ -120,6 +127,29 @@ void Scene3D_Update(double time)
 
 void Scene3D_Draw()
 {
+	LightRendering();
+	Direct3D_SetBackBuffer();
+	Direct3D_ClearBackBuffer();
+	XMFLOAT4X4 mtxView = Camera_GetMatrix();
+	XMFLOAT4X4 mtxProj = Camera_GetMatrixPerspective();
+	XMMATRIX view = XMLoadFloat4x4(&mtxView);
+	XMMATRIX proj = XMLoadFloat4x4(&mtxProj);
+
+
+	//カメラに関する行列をシェーダーに設定
+	Shader3D_SetViewMatrix(view);
+	Shader3D_Static_SetViewMatrix(view);
+	Shader_Billboard_SetViewMatrix(view);
+	Shader3DUnilt_SetViewMatrix(view);
+	ShaderField_SetViewMatrix(view);
+
+	Shader3D_SetProjectionMatrix(proj);
+	Shader3D_Static_SetProjectionMatrix(proj);
+	Shader_Billboard_SetProjectionMatrix(proj);
+	Shader3DUnilt_SetProjectMatrix(proj);
+	ShaderField_SetProjectionMatrix(proj);
+
+
 	Light_SetAmbient({ 0.3f,0.3f,0.3f });
 	Light_SetDirectionalWorld({ 0.0f,-1.0f,0.0f,0.0f }, { 0.4f,0.4f,0.4f,0.3f });
 	Light_SetPointLightCount(1);
@@ -141,6 +171,10 @@ void Scene3D_Draw()
 	//Grid_Draw();
 	Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
+	//Sprite_Begin();
+	Direct3D_SetOffScreenTexture(0);
+	Direct3D_SetDepthEnable(false);
+	Sprite_Draw_N(0, 0, 512.0f, 512.0f, 1.0f);
 }
 
 void Scene3D_Refresh(HWND& hWnd)
@@ -161,4 +195,56 @@ void Scene3D_Change(Scene3D scene)
 Scene3D GetScene3D()
 {
 	return g_SceneEnum;
+}
+
+void LightRendering()
+{
+	Direct3D_SetOffScreen();
+	Direct3D_ClearOffscreen();
+
+	XMFLOAT4X4 mtxView = Camera_GetMatrix();
+	XMMATRIX view = XMLoadFloat4x4(&mtxView);
+	XMMATRIX proj = XMLoadFloat4x4(&Camera_GetMatrixPerspective());
+	XMFLOAT3 camera_position = Camera_GetCameraPos();
+
+
+	//LightCamera_SetFront(GetPlayerFront());
+	LightCamera_SetPosition({ GetPlayerPosition().x,10.0f, GetPlayerPosition().z - 5.0f});
+	mtxView = LightCamera_GetViewMatrix();
+	XMFLOAT4X4 mtxProj = LightCamera_GetProjectionMatrix();
+	view = XMLoadFloat4x4(&mtxView);
+	proj = XMLoadFloat4x4(&mtxProj);
+
+
+	//カメラに関する行列をシェーダーに設定
+	Shader3D_SetViewMatrix(view);
+	Shader3D_Static_SetViewMatrix(view);
+	Shader_Billboard_SetViewMatrix(view);
+	Shader3DUnilt_SetViewMatrix(view);
+	ShaderField_SetViewMatrix(view);
+
+	Shader3D_SetProjectionMatrix(proj);
+	Shader3D_Static_SetProjectionMatrix(proj);
+	Shader_Billboard_SetProjectionMatrix(proj);
+	Shader3DUnilt_SetProjectMatrix(proj);
+	ShaderField_SetProjectionMatrix(proj);
+
+	//サンプラー設定
+	Sampler_SetFilterAnisotropic();
+
+	Direct3D_SetDepthEnable(false);
+	//空表示
+	Sky_Draw();
+
+	Direct3D_SetDepthEnable(true);
+	Light_SetAmbient({ 1.0f,1.0f,1.0f });
+	MeshField_Draw(g_meshPosition);
+	Map_Draw();
+	Enemy_Draw();
+	Player3D_Draw();
+	//Direct3D_SetBackBuffer();
+	//Direct3D_ClearBackBuffer();
+	//Bullet_Draw();
+
+	//Particle3d_Draw();
 }

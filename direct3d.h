@@ -36,4 +36,10 @@ DirectX::XMFLOAT3 Direct3D_ScreenToWorld(float screen_x, float screen_y, float d
 
 void Direct3D_SetOffscreen();
 void Direct3D_SetOffScreenTexture(int slot);
+
+void Direct3D_SetOffScreen();
+void Direct3D_ClearOffscreen();
+
+void Direct3D_SetBackBuffer();
+void Direct3D_ClearBackBuffer();
 #endif // DIRECT3D_H

@@ -105,6 +105,61 @@ void Sprite_Begin(void)
 	Shader_SetProjectionMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
 }
 
+void Sprite_Draw_N(float dx, float dy, float sp_w, float sp_h, float gamma, XMFLOAT4 color)
+{
+	// シェーダーを描画パイプラインに設定
+	Shader_Begin();
+	gamma_function(gamma);
+	// 頂点バッファをロックする
+	D3D11_MAPPED_SUBRESOURCE msr;
+	g_pContext->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+
+	// 頂点バッファへの仮想ポインタを取得
+	Vertex* v = (Vertex*)msr.pData;
+
+	// 頂点情報を書き込み
+	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
+	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
+
+	float w = sp_w;
+	float h = sp_h;
+
+	// 画面の左上から右下に向かう線分を描画する
+	v[0].position = { dx, dy, 0.0f };
+	v[1].position = { dx + w, dy, 0.0f };
+	v[2].position = { dx, dy + h, 0.0f };
+	v[3].position = { dx + w, dy + h, 0.0f };
+	v[0].color = color;
+	v[1].color = color;
+	v[2].color = color;
+	v[3].color = color;
+	v[0].uv = { 0.0f,0.0f };
+	v[1].uv = { 1.0f,0.0f };
+	v[2].uv = { 0.0f,1.0f };
+	v[3].uv = { 1.0f,1.0f };
+
+	// 頂点バッファのロックを解除
+	g_pContext->Unmap(g_pVertexBuffer, 0);
+	//迴轉陣列設定
+	XMMATRIX base = XMMatrixIdentity();
+	XMMATRIX camera = DirectX::XMMatrixTranslation(getClampedCameraPos().x, getClampedCameraPos().y, 0.0f);
+	Shader_SetWorldMatrix(camera);
+	// 頂点バッファを描画パイプラインに設定
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+
+	// 頂点シェーダーに変換行列を設定
+	Shader_SetProjectionMatrix(XMMatrixOrthographicOffCenterLH(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 0.0f, 1.0f));
+
+	// プリミティブトポロジ設定
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	g_pContext->PSSetConstantBuffers(2, 1, &g_pGammaBuffer);
+
+	// ポリゴン描画命令発行
+	g_pContext->Draw(NUM_VERTEX, 0);
+}
+
 void Sprite_Draw(int textureID, float dx, float dy, float sp_w, float sp_h, float gamma, XMFLOAT4 color)
 {
 

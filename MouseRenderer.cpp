@@ -5,9 +5,12 @@
 #include "direct3d.h"
 #include "Camera3D.h"
 #include "Cube.h"
+#include "Key_Logger.h"
 
 static int g_cursorRenderTexId = -1;
 static Mouse_State g_mouseState;
+
+static int mouse_y = 0;
 void MouseRenderer_Initialize()
 {
 	g_cursorRenderTexId = Texture_Load(L"CatCursor.png");
@@ -20,6 +23,10 @@ void MouseRenderer_Finitialize()
 void MouseRenderer_Update(double elapsed_time)
 {
 	Mouse_GetState(&g_mouseState);
+	if (KeyLogger_IsTrigger(KK_U))
+	{
+		mouse_y++;
+	}
 }
 Mouse_State Get_Mouse_Info()
 {
@@ -39,6 +46,7 @@ void MouseRenderer_Draw()
 	XMMATRIX vmax = XMMatrixTranslationFromVector(vtest);
 	XMFLOAT3 vtestf;
 	XMStoreFloat3(&vtestf, vmax.r[3]);
+	vtestf.y = mouse_y;
 	Cube_Draw(vtestf);
 	
 

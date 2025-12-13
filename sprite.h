@@ -16,6 +16,7 @@ void gamma_function(float gamma);
 void Sprite_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Sprite_Finalize(void);
 void Sprite_Begin(void);
+void Sprite_Draw_N(float dx, float dy, float sp_w, float sp_h, float gamma, XMFLOAT4 color = { 1.0f,1.0f,1.0f,1.0f });
 void Sprite_Draw(int textureID, float dx, float dy, float sp_w, float sp_h, float gamma = 1.0f, XMFLOAT4 color = { 1.0f,1.0f,1.0f,1.0f });
 void Sprite_Draw_Rotate(int textureID, float dx, float dy, float sp_w, float sp_h, float angle, float gamma = 1.0f, XMFLOAT4 color = { 1.0f,1.0f,1.0f,1.0f });
 void Sprite_Draw_Y_Percentage(int textureID, float dx, float dy, float sp_w, float sp_h, float percent, float gamma = 1.0f, XMFLOAT4 color = { 1.0f,1.0f,1.0f,1.0f });

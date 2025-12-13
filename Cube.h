@@ -12,5 +12,6 @@ void Cube_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void Cube_Finitialize();
 void Cube_Update(double elapsed_time);
 void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos);
+void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale);
 AABB Cube_GetAABB(const DirectX::XMFLOAT3& position);
 #endif

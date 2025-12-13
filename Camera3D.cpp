@@ -9,6 +9,7 @@
 #include "PlayerCamera.h"
 #include "Shader_Billboard.h"
 #include "shader3d_unlit.h"
+#include "ShaderField.h"
 using namespace DirectX;
 
 enum CameraControlStatus
@@ -183,6 +184,7 @@ void HAL_Camera_Movement_Update(float time)
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
 	Shader3DUnilt_SetViewMatrix(mtxView);
+	ShaderField_SetViewMatrix(mtxView);
 
 	//constexpr float fovAngleY = XMConvertToRadians(60.0f);
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
@@ -195,6 +197,7 @@ void HAL_Camera_Movement_Update(float time)
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
+	ShaderField_SetProjectionMatrix(mtxPerspective);
 }
 
 DirectX::XMFLOAT4X4& Camera_GetMatrix()
@@ -307,6 +310,7 @@ void CameraDragUpdate(float time)
 	Shader3D_Static_SetViewMatrix(mtxView);
 	Shader_Billboard_SetViewMatrix(mtxView);
 	Shader3DUnilt_SetViewMatrix(mtxView);
+	ShaderField_SetViewMatrix(mtxView);
 	
 	float aspectRatio = (float)Direct3D_GetBackBufferWidth() / Direct3D_GetBackBufferHeight();
 	float nearZ = 0.1f;
@@ -318,4 +322,5 @@ void CameraDragUpdate(float time)
 	Shader3D_Static_SetProjectionMatrix(mtxPerspective);
 	Shader_Billboard_SetProjectionMatrix(mtxPerspective);
 	Shader3DUnilt_SetProjectMatrix(mtxPerspective);
+	ShaderField_SetProjectionMatrix(mtxPerspective);
 }

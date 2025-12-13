@@ -43,8 +43,22 @@ static ID3D11DepthStencilView* g_pOffscreenDepthStencilView = nullptr;
 static D3D11_TEXTURE2D_DESC g_OffscreenBufferDesc{};
 static D3D11_VIEWPORT g_OffscreenViewport{};
 
+
 static bool configureOffscreenBuffer(); // バックバッファの設定・生成
 static void releaseOffscreenBuffer(); // バックバッファの解放
+
+/* depth関連 */
+static ID3D11Texture2D* g_pDepthRenderBuffer = nullptr;
+static ID3D11RenderTargetView* g_pDepthRenderTargetView = nullptr;
+static ID3D11ShaderResourceView* g_pDepthRenderShaderResourceView = nullptr;
+static ID3D11Texture2D* g_pDepthRenderDepthStencilBuffer = nullptr;
+static ID3D11DepthStencilView* g_pDepthRenderDepthStencilView = nullptr;
+static D3D11_TEXTURE2D_DESC g_DepthRenderBufferDesc{};
+static D3D11_VIEWPORT g_DepthRenderViewport{};
+
+
+static bool configureDepthRenderBuffer(); // バックバッファの設定・生成
+static void releaseDepthRenderBuffer(); // バックバッファの解放
 
 
 bool Direct3D_Initialize(HWND hWnd)
@@ -111,7 +125,7 @@ bool Direct3D_Initialize(HWND hWnd)
 		return false;
 	}
 
-	//configureOffscreenBuffer();
+	configureOffscreenBuffer();
 
 
 	// ブレンドステート設定
@@ -323,6 +337,60 @@ void releaseBackBuffer()
 	}*/
 }
 
+
+bool configureDepthRenderBuffer()
+{
+	HRESULT hr;
+
+	g_DepthRenderBufferDesc.Width = 512;
+	g_OffscreenBufferDesc.Height = 512;
+	g_OffscreenBufferDesc.MipLevels = 1;
+	g_OffscreenBufferDesc.ArraySize = 1;
+	g_OffscreenBufferDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	g_OffscreenBufferDesc.SampleDesc.Count = 1;
+	g_OffscreenBufferDesc.SampleDesc.Quality = 0;
+	g_OffscreenBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	g_OffscreenBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	g_OffscreenBufferDesc.CPUAccessFlags = 0;
+	g_OffscreenBufferDesc.MiscFlags = 0;
+
+	g_pDevice->CreateTexture2D(&g_OffscreenBufferDesc, nullptr, &g_pDepthRenderBuffer);
+	g_pDevice->CreateRenderTargetView(g_pDepthRenderBuffer, nullptr, &g_pDepthRenderTargetView);
+	g_pDevice->CreateShaderResourceView(g_pDepthRenderBuffer, nullptr, &g_pDepthRenderShaderResourceView);
+
+	D3D11_TEXTURE2D_DESC depth_stencil_desc{};
+	depth_stencil_desc.Width = g_OffscreenBufferDesc.Width;
+	depth_stencil_desc.Height = g_OffscreenBufferDesc.Height;
+	depth_stencil_desc.MipLevels = 1;
+	depth_stencil_desc.ArraySize = 1;
+	depth_stencil_desc.Format = DXGI_FORMAT_D32_FLOAT;
+	depth_stencil_desc.SampleDesc.Count = 1;
+	depth_stencil_desc.SampleDesc.Quality = 0;
+	depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;
+	depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depth_stencil_desc.CPUAccessFlags = 0;
+	depth_stencil_desc.MiscFlags = 0;
+	hr = g_pDevice->CreateTexture2D(&depth_stencil_desc, nullptr, &g_pDepthRenderDepthStencilBuffer);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depth_stencil_view_desc{};
+	depth_stencil_view_desc.Format = depth_stencil_desc.Format;
+	depth_stencil_view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depth_stencil_view_desc.Texture2D.MipSlice = 0;
+	depth_stencil_view_desc.Flags = 0;
+	hr = g_pDevice->CreateDepthStencilView(g_pDepthRenderDepthStencilBuffer, &depth_stencil_view_desc, &g_pDepthRenderDepthStencilView);
+
+	g_DepthRenderViewport.TopLeftX = 0.0f;
+	g_DepthRenderViewport.TopLeftY = 0.0f;
+	g_DepthRenderViewport.Width = static_cast<FLOAT>(g_DepthRenderBufferDesc.Width);
+	g_DepthRenderViewport.Height = static_cast<FLOAT>(g_DepthRenderBufferDesc.Height);
+	g_DepthRenderViewport.MinDepth = 0.0f;
+	g_DepthRenderViewport.MaxDepth = 1.0f;
+
+	return true;
+}
+void releaseDepthRenderBuffer()
+{
+}
 bool configureOffscreenBuffer()
 {
 	HRESULT hr;
@@ -425,4 +493,45 @@ void Direct3D_SetOffscreen()
 void Direct3D_SetOffScreenTexture(int slot)
 {
 	g_pDeviceContext->PSSetShaderResources(slot, 1, &g_pOffscreenShaderResourceView);
+}
+
+void Direct3D_SetOffScreen() {
+	g_pDeviceContext->RSSetViewports(1, &g_OffscreenViewport); //ビューポートの設定
+
+	// レンダーターゲットビューとデプスステンシルビューの設定
+	g_pDeviceContext->OMSetRenderTargets(1, &g_pOffscreenRenderTargetView, g_pOffscreenDepthStencilView);
+}
+
+
+void Direct3D_ClearOffscreen() {
+	float clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; //0~1
+	g_pDeviceContext->ClearRenderTargetView(g_pOffscreenRenderTargetView, clear_color);
+	g_pDeviceContext->ClearDepthStencilView(g_pOffscreenDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+void Direct3D_ClearDepth()
+{
+	float clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; //0~1
+	g_pDeviceContext->ClearRenderTargetView(g_pDepthRenderTargetView, clear_color);
+	g_pDeviceContext->ClearDepthStencilView(g_pDepthRenderDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+}
+void Direct3D_SetDepth()
+{
+	g_pDeviceContext->RSSetViewports(1, &g_DepthRenderViewport); //ビューポートの設定
+
+	// レンダーターゲットビューとデプスステンシルビューの設定
+	g_pDeviceContext->OMSetRenderTargets(1, &g_pDepthRenderTargetView, g_pDepthRenderDepthStencilView);
+}
+
+void Direct3D_SetBackBuffer() {
+	g_pDeviceContext->RSSetViewports(1, &g_Viewport); //ビューポートの設定
+
+	// レンダーターゲットビューとデプスステンシルビューの設定
+	g_pDeviceContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+}
+
+void Direct3D_ClearBackBuffer() {
+	float clear_color[4] = { 0.97f, 0.67f, 0.65f, 1.0f }; //0~1
+	g_pDeviceContext->ClearRenderTargetView(g_pRenderTargetView, clear_color);
+	g_pDeviceContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }

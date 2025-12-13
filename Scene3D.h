@@ -18,5 +18,5 @@ enum class Scene3D
 void Scene3D_Refresh(HWND& hWnd);
 void Scene3D_Change(Scene3D scene);
 Scene3D GetScene3D();
-
+void LightRendering();
 #endif
