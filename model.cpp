@@ -299,7 +299,7 @@ MODEL* ModelLoad( const char *FileName,float scale,bool bBlender )
 	for (unsigned int i = 0; i < model->AiScene->mNumAnimations; i++)
 	{
 		aiAnimation* anim = model->AiScene->mAnimations[i];
-		//ExportAnimation(model,"Throw.anim");
+		ExportAnimation(model,"Fall.anim");
 	}
 	return model;
 }

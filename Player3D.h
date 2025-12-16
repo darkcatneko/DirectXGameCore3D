@@ -80,6 +80,7 @@ private:
 	{
 	private:
 		PlayerStateMachine* m_pOwner{};
+		float fallTimer = 0.0f;
 
 	public:
 		PlayerJumpState(PlayerStateMachine* pOwner)
@@ -97,6 +98,20 @@ private:
 
 	public:
 		PlayerThrowState(PlayerStateMachine* pOwner)
+			: m_pOwner(pOwner) {
+		}
+		void Update(double elapsed_time) override;
+		void Draw() const override;
+		void InState() override;
+		void OutState() override;
+	};
+	class PlayerFallState : public State
+	{
+	private:
+		PlayerStateMachine* m_pOwner{};
+
+	public:
+		PlayerFallState(PlayerStateMachine* pOwner)
 			: m_pOwner(pOwner) {
 		}
 		void Update(double elapsed_time) override;

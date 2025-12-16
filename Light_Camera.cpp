@@ -38,7 +38,7 @@ const DirectX::XMFLOAT4X4& LightCamera_GetProjectionMatrix()
 {
 	XMFLOAT4X4 mtxProj{};
 
-	float value = 30;
+	float value = 8;
 	XMMATRIX proj = XMMatrixOrthographicOffCenterLH(-value, value, -value, value, 0.1f, 1000.0f);
 	XMStoreFloat4x4(&mtxProj, proj);
 	return mtxProj;

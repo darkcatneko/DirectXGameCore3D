@@ -68,7 +68,7 @@ void CircleShadow_Draw(DirectX::XMFLOAT3 position)
 
 	XMMATRIX mtxTrans = XMMatrixTranslation(position.x, position.y+0.01f, position.z);
 	XMMATRIX mtxRot = XMMatrixRotationX(XMConvertToRadians(90.0f));
-	XMMATRIX mtxScale = XMMatrixScaling(3.0f, 3.0f, 3.0f);
+	XMMATRIX mtxScale = XMMatrixScaling(2.0f, 2.0f, 2.0f);
 	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
 
 	Shader3DUnilt_SetWorldMatrix(mtxWorld);

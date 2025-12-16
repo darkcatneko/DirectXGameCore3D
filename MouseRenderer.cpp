@@ -11,6 +11,8 @@ static int g_cursorRenderTexId = -1;
 static Mouse_State g_mouseState;
 
 static int mouse_y = 0;
+XMFLOAT3 vtestf;
+
 void MouseRenderer_Initialize()
 {
 	g_cursorRenderTexId = Texture_Load(L"CatCursor.png");
@@ -23,17 +25,14 @@ void MouseRenderer_Finitialize()
 void MouseRenderer_Update(double elapsed_time)
 {
 	Mouse_GetState(&g_mouseState);
-	if (KeyLogger_IsTrigger(KK_U))
+	if (KeyLogger_IsTrigger(KK_Y))
 	{
 		mouse_y++;
 	}
-}
-Mouse_State Get_Mouse_Info()
-{
-	return g_mouseState;
-}
-void MouseRenderer_Draw()
-{
+	if (KeyLogger_IsTrigger(KK_U))
+	{
+		mouse_y--;
+	}
 	XMFLOAT4X4 mtxview = Camera_GetMatrix();
 	XMFLOAT3 test_near = Direct3D_ScreenToWorld(g_mouseState.x, g_mouseState.y, 0.0, mtxview, Camera_GetMatrixPerspective());
 	XMFLOAT3 test_far = Direct3D_ScreenToWorld(g_mouseState.x, g_mouseState.y, 1.0, mtxview, Camera_GetMatrixPerspective());
@@ -41,13 +40,23 @@ void MouseRenderer_Draw()
 	XMVECTOR vtest = XMLoadFloat3(&test_far) - XMLoadFloat3(&test_near);
 	vtest = XMVector3Normalize(vtest);
 
-	float ratio = -XMVectorGetY(XMLoadFloat3(&test_near)) / XMVectorGetY(vtest);
+	float planeY = mouse_y;
+	float ratio = (planeY - XMVectorGetY(XMLoadFloat3(&test_near)))
+		/ XMVectorGetY(vtest);
 	vtest = XMLoadFloat3(&test_near) + vtest * ratio;
 	XMMATRIX vmax = XMMatrixTranslationFromVector(vtest);
-	XMFLOAT3 vtestf;
+	
 	XMStoreFloat3(&vtestf, vmax.r[3]);
-	vtestf.y = mouse_y;
-	Cube_Draw(vtestf);
+}
+Mouse_State Get_Mouse_Info()
+{
+	return g_mouseState;
+}
+void MouseRenderer_Draw()
+{
+	
+	//vtestf.y = mouse_y;
+	//Cube_Draw(vtestf);
 	
 
 	Sprite_Draw_UV_UI(g_cursorRenderTexId, g_mouseState.x, g_mouseState.y, 32.0f, 32.0f, 1.0f, 1.0f, 0, 0);
@@ -56,4 +65,11 @@ void MouseRenderer_Draw()
 	//UICollision_DebugDraw(MouseRenderer_GetBoxCollision());
 #endif
 }
+
+DirectX::XMFLOAT3 GetMouseToMapLocation()
+{
+	return vtestf;
+}
+
+
 

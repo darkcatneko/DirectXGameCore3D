@@ -14,6 +14,8 @@
 using namespace DirectX;
 constexpr float EPSILON = 0.0001f;
 namespace {
+	DirectX::XMFLOAT3 g_PlayerRespawn = { 0.0f,1.0f,0.0f };
+
 	DirectX::XMFLOAT3 g_PlayerPosition = {};
 	DirectX::XMFLOAT3 g_PlayerFront = { 0.0f,0.0f,1.0f };
 	DirectX::XMFLOAT3 g_PlayerDirection = {};
@@ -28,6 +30,7 @@ namespace {
 	Animation g_pPlayerAnimation_Idle;
 	Animation g_pPlayerAnimation_Jump;
 	Animation g_pPlayerAnimation_Throw;
+	Animation g_pPlayerAnimation_Fall;
 
 	PlayerStateMachine* g_PlayerStateMachine = nullptr;
 
@@ -39,17 +42,20 @@ void Player3D_Movement(float elapsed_time);
 void Player3D_Initialize(const DirectX::XMFLOAT3 position, const DirectX::XMFLOAT3 front)
 {
 	g_PlayerPosition = position;
+	g_PlayerRespawn = position;
 	g_PlayerVelocity = { 0.0f,0.0f,0.0f };
 	DirectX::XMStoreFloat3(&g_PlayerFront, DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&front)));
-	g_pPlayerModel = ModelLoad( "untitled0022.fbx", 1.0f, false);
+	g_pPlayerModel = ModelLoad( "FALL.fbx", 1.0f, false);
 	g_pPlayerAnimation_Run = ImportAnimation("Run.anim");
 	g_pPlayerAnimation_Idle = ImportAnimation("Idle.anim");
 	g_pPlayerAnimation_Jump = ImportAnimation("Jump.anim");
 	g_pPlayerAnimation_Throw = ImportAnimation("Throw.anim");
+	g_pPlayerAnimation_Fall = ImportAnimation("Fall.anim");
 	g_Animator.Register("Idle", &g_pPlayerAnimation_Idle);
 	g_Animator.Register("Run", &g_pPlayerAnimation_Run,true,0.5f);
 	g_Animator.Register("Jump", &g_pPlayerAnimation_Jump, false, 0.42f);
 	g_Animator.Register("Throw", &g_pPlayerAnimation_Throw, false,0.5f);
+	g_Animator.Register("Fall", &g_pPlayerAnimation_Fall,true, 0.5f);
 	g_Animator.Initialize("Idle");
 
 	g_PlayerStateMachine = new PlayerStateMachine();
@@ -83,6 +89,7 @@ void  Player3D_Update(double elapsed_time)
 	BuildSkinMatrices(*g_pPlayerModel, g_SkinMatrices);
 
 	Shader3D_SkinningBegin(g_SkinMatrices);
+
 }
 void Player3D_Movement(float elapsed_time)
 {
@@ -115,7 +122,7 @@ void Player3D_Movement(float elapsed_time)
 	AABB player = GetPlayer_AABB();
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
-
+		if (Map_GetObjects(i)->IsTriggered)continue;
 		AABB Object = Map_GetObjects(i)->Collision;
 
 		//被重力拖的物件有被撞到嗎
@@ -126,22 +133,7 @@ void Player3D_Movement(float elapsed_time)
 			{
 				//player_pos -= gravity_velocity;
 				player_pos = XMVectorSetY(player_pos, Object.max.y);
-				player_velocity *= { 1.0f, 0.0f, 1.0f};
-				if (g_IsJump)
-				{
-					/*auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
-					float size = XMVectorGetX(XMVector3Length(speedtest));
-					if (size <= 0.01f)
-					{
-						g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
-					}
-					else
-					{
-						g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
-
-					}*/
-
-				}
+				player_velocity *= { 1.0f, 0.0f, 1.0f};				
 				g_IsJump = false;
 			}
 		}
@@ -150,7 +142,8 @@ void Player3D_Movement(float elapsed_time)
 	//有撞到地面嗎
 	if (DirectX::XMVectorGetY(player_pos) <= -0.5f)
 	{
-		player_pos = XMVectorSetY(player_pos, -0.5f);
+		//player_pos = XMVectorSetY(player_pos, -0.5f);
+		player_pos =  XMLoadFloat3(&g_PlayerRespawn);
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
 		g_IsJump = false;
 	}
@@ -249,6 +242,7 @@ void Player3D_Movement(float elapsed_time)
 
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
+		if (Map_GetObjects(i)->IsTriggered)continue;
 		AABB Object = Cube_GetAABB(Map_GetObjects(i)->Position);
 		Hit hit = Collision_IsHitAABB(Object, player);
 		//撞擊判定
@@ -297,7 +291,7 @@ void Player3D_Draw()
 	);
 	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw)+180,0}, { 0.01f,0.01f,0.01f }));
 	Map_Draw();
-	CircleShadow_Draw(g_PlayerPosition);
+	
 	//Cube_Draw({ g_PlayerPosition.x,g_PlayerPosition.y+0.5f,g_PlayerPosition.z });
 }
 
@@ -380,6 +374,10 @@ void PlayerStateMachine::PlayerRunState::Update(double elapsed_time)
 	{
 		m_pOwner->ChangeState(new PlayerThrowState(m_pOwner));
 	}
+	if (g_PlayerVelocity.y < 0.0f)
+	{
+			m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
+	}
 }
 
 void PlayerStateMachine::PlayerRunState::Draw() const
@@ -410,6 +408,10 @@ void PlayerStateMachine::PlayerIdleState::Update(double elapsed_time)
 	{
 		m_pOwner->ChangeState(new PlayerThrowState(m_pOwner));
 	}
+	if (g_PlayerVelocity.y < 0.0f)
+	{
+		m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
+	}
 }
 
 void PlayerStateMachine::PlayerIdleState::Draw() const
@@ -439,6 +441,15 @@ void PlayerStateMachine::PlayerJumpState::Update(double elapsed_time)
 		{
 			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
 			m_pOwner->ChangeState(new PlayerRunState(m_pOwner));
+		}
+	}
+	if (g_PlayerVelocity.y<0.0f)
+	{
+		fallTimer += elapsed_time;
+		if (fallTimer >= 0.3f)
+		{
+			fallTimer = 0;
+			m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
 		}
 	}
 }
@@ -497,3 +508,38 @@ void PlayerStateMachine::PlayerThrowState::InState()
 void PlayerStateMachine::PlayerThrowState::OutState()
 {
 }
+
+void PlayerStateMachine::PlayerFallState::Update(double elapsed_time)
+{
+	if (g_IsJump == false)
+	{
+
+		auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+		float size = XMVectorGetX(XMVector3Length(speedtest));
+		if (size <= 0.01f || !(KeyLogger_IsPressed(KK_I) || KeyLogger_IsPressed(KK_J) || KeyLogger_IsPressed(KK_K) || KeyLogger_IsPressed(KK_L)))
+		{
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
+			m_pOwner->ChangeState(new PlayerIdleState(m_pOwner));
+		}
+		else
+		{
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
+			m_pOwner->ChangeState(new PlayerRunState(m_pOwner));
+		}
+	}
+}
+
+void PlayerStateMachine::PlayerFallState::Draw() const
+{
+}
+
+void PlayerStateMachine::PlayerFallState::InState()
+{
+	g_IsJump = true;
+	g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Fall", 0.35f);
+}
+
+void PlayerStateMachine::PlayerFallState::OutState()
+{
+}
+////////

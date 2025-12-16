@@ -75,7 +75,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, { 0.0f,0.0f,1.0f }, { 1.0f,0.0f,0.0f });
 		Enemy_Initialize();
 		//Enemy_Create({ 5.0f, 0.0f, 0.0f });
-		Player3D_Initialize({ 10,0,0 }, { 0,0,1 });
+		Player3D_Initialize({ 0,12,0 }, { 0,0,1 });
 		LightCamera_Initialize(GetPlayerFront(), {0,10,-5});
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
 		texid = Texture_Load(L"Grass.png");
@@ -109,7 +109,7 @@ void Scene3D_Update(double time)
 	Cube_Update(time);
 	Enemy_Update(time);
 	Player3D_Update(time);
-
+	Map_Update(time);
 	Bullet3D_Update(time);
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
@@ -171,10 +171,11 @@ void Scene3D_Draw()
 	//Grid_Draw();
 	Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
+	CircleShadow_Draw(GetPlayerPosition());
 	//Sprite_Begin();
 	Direct3D_SetOffScreenTexture(0);
 	Direct3D_SetDepthEnable(false);
-	Sprite_Draw_N(0, 0, 512.0f, 512.0f, 1.0f);
+	Sprite_Draw_N(0, 0, 128.0f, 128.0f, 1.0f);
 }
 
 void Scene3D_Refresh(HWND& hWnd)
@@ -209,7 +210,7 @@ void LightRendering()
 
 
 	//LightCamera_SetFront(GetPlayerFront());
-	LightCamera_SetPosition({ GetPlayerPosition().x,10.0f, GetPlayerPosition().z - 5.0f});
+	LightCamera_SetPosition({ GetPlayerPosition().x,20.0f, GetPlayerPosition().z - 5.0f});
 	mtxView = LightCamera_GetViewMatrix();
 	XMFLOAT4X4 mtxProj = LightCamera_GetProjectionMatrix();
 	view = XMLoadFloat4x4(&mtxView);
