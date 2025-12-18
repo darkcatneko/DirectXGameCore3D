@@ -90,11 +90,11 @@ bool Collision_IsOverlapSphere(const Sphere& a, const DirectX::XMFLOAT3& point)
 }
 Ray MakeMouseRay(float mouseX, float mouseY)
 {
-	DirectX::XMFLOAT4X4 view = PlayerCamera_GetMatrix ();
-	DirectX::XMFLOAT4X4 proj = PlayerCamera_GetMatrixPerspective();
+	DirectX::XMFLOAT4X4 view = Camera_GetMatrix();
+	DirectX::XMFLOAT4X4 proj = Camera_GetMatrixPerspective();
 
-	DirectX::XMFLOAT3 nearP = PlayerCamera_GetCameraPos();
-	DirectX::XMFLOAT3 farP = Direct3D_ScreenToWorld(mouseX, mouseY, 1.0f, view, proj);;
+	DirectX::XMFLOAT3 nearP = Camera_GetCameraPos();
+	DirectX::XMFLOAT3 farP = Direct3D_ScreenToWorld(mouseX, mouseY, 1.0f, view, proj);
 
 	using namespace DirectX;
 	XMVECTOR o = XMLoadFloat3(&nearP);
@@ -150,13 +150,5 @@ void Debug_DrawRay(const Ray& ray)
 		ray.origin.z + ray.dir.z * 100.0f,
 	};
 	Cube_Draw(end);
-//	for (int i = 3; i < 10; i++)
-//	{
-//		Cube_Draw({
-//		ray.origin.x + ray.dir.x * 5.0f * i,
-//		ray.origin.y + ray.dir.y * 5.0f * i,
-//		ray.origin.z + ray.dir.z * 5.0f * i,
-//		});
-//	}
 	Grid_DebugDrawRay(start, ray.dir, 10000.0f); // 紅色
 }

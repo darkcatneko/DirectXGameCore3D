@@ -15,7 +15,8 @@ void Grid_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot,
 void Grid_DebugDrawRay(
 	const DirectX::XMFLOAT3& origin,
 	const DirectX::XMFLOAT3& dir,
-	float length
+	float length,
+	DirectX::XMFLOAT4 = { 1.0f,0.0f,0.0f,1.0f }
 );
 #endif // !GRID_H
 

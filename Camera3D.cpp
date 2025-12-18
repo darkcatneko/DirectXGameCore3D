@@ -244,8 +244,7 @@ DirectX::XMFLOAT3 Camera_GetCameraPos()
 	switch (g_cameraControlStatus)
 	{
 	case PlayerFollow:
-		PlayerCamera_GetCameraPos();
-		break;
+		return PlayerCamera_GetCameraPos();
 	case Free:
 	return g_CameraPosition;
 	default:

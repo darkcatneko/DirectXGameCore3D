@@ -127,7 +127,8 @@ void Grid_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot,
 void Grid_DebugDrawRay(
 	const XMFLOAT3& origin,
 	const XMFLOAT3& dir,
-	float length
+	float length,
+	XMFLOAT4 color
 )
 {
 	Vertex3D v[2];
@@ -151,7 +152,7 @@ void Grid_DebugDrawRay(
 
 	// Draw
 	Shader3dUnlit_Begin();
-	Shader3DUnilt_SetColor({1,0,0,1 });
+	Shader3DUnilt_SetColor(color);
 	Texture_SetTexture(whiteTex, 0);
 
 	UINT stride = sizeof(Vertex3D);

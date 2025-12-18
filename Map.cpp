@@ -24,7 +24,18 @@ static MapObject* chosingObj;
 static MODEL_STATIC* CoinModelTexId;
 void Map_IsTriggerUpdate();
 void Map_MakingUpdate(double elapsed_time);
-int PickObjectIndex(float mouseX, float mouseY);
+int PickObjectIndex(float mouseX, float mouseY); 
+void Map_MoveObjectUpdate();
+
+XMFLOAT3 x_point;
+XMFLOAT3 y_point;
+XMFLOAT3 z_point;	
+AABB x_aabb;
+AABB y_aabb;
+AABB z_aabb;
+XMFLOAT2 prevMousePos;
+XMFLOAT3 prevObjPos;
+
 static MapObject g_MapObjects[g_MapObjectCount]
 {
 	{1,{ 0.0f,10.0f, 0.0f}},
@@ -51,6 +62,8 @@ static MapObject g_MapObjects[g_MapObjectCount]
 
 static int mapIconTexId = 0;
 bool isMapping = false;
+bool isMovingObject = false;
+
 void Map_Initialize()
 {
 	mapIconTexId = Texture_Load(L"mapIcon.png");
@@ -83,7 +96,20 @@ void Map_Update(double elapsed_time)
 {
 	if (KeyLogger_IsTrigger(KK_M))
 	{
+		if (isMovingObject)
+		{
+			isMovingObject = false;
+			chosingObj = nullptr;
+		}
 		isMapping = !isMapping;
+	}
+	if (KeyLogger_IsTrigger(KK_N))
+	{
+		if (isMapping)
+		{
+			isMapping = false;
+		}
+		isMovingObject = !isMovingObject;
 	}
 	if (KeyLogger_IsTrigger(KK_R))
 	{
@@ -95,7 +121,7 @@ void Map_Update(double elapsed_time)
 	}
 	Map_IsTriggerUpdate();
 	Map_MakingUpdate(elapsed_time);
-	if (!isMapping)
+	if (!isMapping && isMovingObject)
 	{
 		if (MouseLogger_IsTrigger(0))
 		{
@@ -107,9 +133,57 @@ void Map_Update(double elapsed_time)
 			else
 			{
 			chosingObj = &g_MapObjects[i];
+			}			
+		}
+		Ray ray = MakeMouseRay(Get_Mouse_Info().x, Get_Mouse_Info().y);
+		float t = 0.0f;
+		if (RayVsAABB(ray, x_aabb, t))
+		{
+			if (MouseLogger_IsTrigger(1))
+			{
+				if (chosingObj != nullptr)
+				{
+					prevObjPos = chosingObj->Position;
+				}
+				prevMousePos = { (float)Get_Mouse_Info().x,(float)Get_Mouse_Info().y };
+			}
+			if (MouseLogger_IsDown(1))
+			{
+				if (chosingObj!=nullptr)
+				{
+					chosingObj->Position.x = prevObjPos.x + (Get_Mouse_Info().x - prevMousePos.x)*0.05f;
+					chosingObj->Collision =Cube_GetAABB(chosingObj->Position);
+				}
 			}
 			
 		}
+	}
+
+	Map_MoveObjectUpdate();
+}
+void Map_MoveObjectUpdate()
+{
+	if (chosingObj != nullptr)
+	{
+	x_point = { chosingObj->Collision.max.x+1.0f , chosingObj->Position.y			  ,chosingObj->Position.z			  };
+	y_point = { chosingObj->Position.x,			chosingObj->Collision.max.y+ 1.0f ,chosingObj->Position.z			  };
+	z_point = { chosingObj->Position.x,			chosingObj->Position.y			  ,chosingObj->Collision.max.z + 1.0f };
+	
+	x_aabb = {
+		{x_point.x + 1.0f , x_point.y + 0.05f , x_point.z + 0.05f},
+		{x_point.x - 1.0f , x_point.y - 0.05f , x_point.z - 0.05f},
+	};
+	y_aabb = {
+		{y_point.x + 0.05f , y_point.y + 1.0f , y_point.z + 0.05f},
+		{y_point.x - 0.05f , y_point.y - 1.0f , y_point.z - 0.05f},
+	};
+	z_aabb = {
+		{z_point.x + 0.05f , z_point.y + 0.05f , z_point.z + 1.0f},
+		{z_point.x - 0.05f , z_point.y - 0.05f , z_point.z - 1.0f},
+	};
+	
+
+
 	}
 }
 void Map_IsTriggerUpdate()
@@ -174,6 +248,12 @@ void Map_Draw()
 	{
 
 		AABB_Draw_Debug_Size(chosingObj->Collision,0.1f);
+	}
+	if (chosingObj != nullptr)
+	{
+		Grid_DebugDrawRay({ x_aabb.min.x,x_point.y   ,x_point.z }, { 1,0,0 }, 2.0f);
+		Grid_DebugDrawRay({ y_point.x   ,x_aabb.min.y,y_point.z }, { 0,1,0 }, 2.0f, { 0,1,0,1 });
+		Grid_DebugDrawRay({ z_point.x   ,z_point.y   ,z_aabb.min.z }, { 0,0,1 }, 2.0f, { 0,0,1,1 });
 	}
 	if (isMapping)
 	{
