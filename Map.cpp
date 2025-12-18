@@ -33,8 +33,12 @@ XMFLOAT3 z_point;
 AABB x_aabb;
 AABB y_aabb;
 AABB z_aabb;
-XMFLOAT2 prevMousePos;
+XMFLOAT3 prevMousePos;
 XMFLOAT3 prevObjPos;
+
+bool isPlacingOnX = false;
+bool isPlacingOnY = false;
+bool isPlacingOnZ = false;
 
 static MapObject g_MapObjects[g_MapObjectCount]
 {
@@ -145,18 +149,149 @@ void Map_Update(double elapsed_time)
 				{
 					prevObjPos = chosingObj->Position;
 				}
-				prevMousePos = { (float)Get_Mouse_Info().x,(float)Get_Mouse_Info().y };
-			}
-			if (MouseLogger_IsDown(1))
-			{
-				if (chosingObj!=nullptr)
+				float planeZ = chosingObj->Position.z;   // 或 0.0f
+
+				// 避免 ray 跟平面平行
+				if (fabs(ray.dir.z) < 1e-6f)
+					return; // 沒有交點
+
+				float t = (planeZ - ray.origin.z) / ray.dir.z;
+
+				prevMousePos =
 				{
-					chosingObj->Position.x = prevObjPos.x + (Get_Mouse_Info().x - prevMousePos.x)*0.05f;
-					chosingObj->Collision =Cube_GetAABB(chosingObj->Position);
+					ray.origin.x + ray.dir.x * t,
+					ray.origin.y + ray.dir.y * t,
+					planeZ
+				};
+				isPlacingOnX = true;
+			}
+		}
+		else if (RayVsAABB(ray, y_aabb, t))
+		{
+			if (MouseLogger_IsTrigger(1))
+			{
+				if (chosingObj != nullptr)
+				{
+					prevObjPos = chosingObj->Position;
+				}
+				float planeZ = chosingObj->Position.z;   // 或 0.0f
+
+				// 避免 ray 跟平面平行
+				if (fabs(ray.dir.z) < 1e-6f)
+					return; // 沒有交點
+
+				float t = (planeZ - ray.origin.z) / ray.dir.z;
+
+				prevMousePos =
+				{
+					ray.origin.x + ray.dir.x * t,
+					ray.origin.y + ray.dir.y * t,
+					planeZ
+				};
+				isPlacingOnY = true;
+			}
+		}
+		else if (RayVsAABB(ray, z_aabb, t))
+		{
+			if (MouseLogger_IsTrigger(1))
+			{
+				if (chosingObj != nullptr)
+				{
+					prevObjPos = chosingObj->Position;
+				}
+				float planeY = chosingObj->Position.y;   // 或 0.0f
+
+				// 避免 ray 跟平面平行
+				if (fabs(ray.dir.y) < 1e-6f)
+					return; // 沒有交點
+
+				float t = (planeY - ray.origin.y) / ray.dir.y;
+
+				prevMousePos =
+				{
+					ray.origin.x + ray.dir.x * t,
+					planeY,
+					ray.origin.z + ray.dir.z * t
+				};
+				isPlacingOnZ = true;
+			}
+		}
+		if (MouseLogger_IsDown(1))
+		{
+			if (isPlacingOnX)
+			{
+				if (chosingObj != nullptr)
+				{
+					float planeZ = chosingObj->Position.z;   // 或 0.0f
+
+					// 避免 ray 跟平面平行
+					if (fabs(ray.dir.z) < 1e-6f)
+						return; // 沒有交點
+
+					float t = (planeZ - ray.origin.z) / ray.dir.z;
+
+					XMFLOAT3 thisPos =
+					{
+						ray.origin.x + ray.dir.x * t,
+						ray.origin.y + ray.dir.y * t,
+						planeZ
+					};
+					chosingObj->Position.x = prevObjPos.x + thisPos.x - prevMousePos.x;
+					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+				}
+			}
+			else if(isPlacingOnY)
+			{
+				if (chosingObj != nullptr)
+				{
+					float planeZ = chosingObj->Position.z;   // 或 0.0f
+
+					// 避免 ray 跟平面平行
+					if (fabs(ray.dir.z) < 1e-6f)
+						return; // 沒有交點
+
+					float t = (planeZ - ray.origin.z) / ray.dir.z;
+
+					XMFLOAT3 thisPos =
+					{
+						ray.origin.x + ray.dir.x * t,
+						ray.origin.y + ray.dir.y * t,
+						planeZ
+					};
+					chosingObj->Position.y = prevObjPos.y + thisPos.y - prevMousePos.y;
+					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+				}
+			}
+			else if (isPlacingOnZ)
+			{
+				if (chosingObj != nullptr)
+				{
+					float planeY = chosingObj->Position.y;   // 或 0.0f
+
+					// 避免 ray 跟平面平行
+					if (fabs(ray.dir.y) < 1e-6f)
+						return; // 沒有交點
+
+					float t = (planeY - ray.origin.y) / ray.dir.y;
+
+					XMFLOAT3 thisPos =
+					{
+						ray.origin.x + ray.dir.x * t,
+						planeY,
+						ray.origin.z + ray.dir.z * t
+					};
+					chosingObj->Position.z = prevObjPos.z + thisPos.z - prevMousePos.z;
+					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
 				}
 			}
 			
 		}
+			if (MouseLogger_IsRelease(1))
+			{
+				isPlacingOnX = false;
+				isPlacingOnY = false;
+				isPlacingOnZ = false;
+			}
 	}
 
 	Map_MoveObjectUpdate();
@@ -254,6 +389,9 @@ void Map_Draw()
 		Grid_DebugDrawRay({ x_aabb.min.x,x_point.y   ,x_point.z }, { 1,0,0 }, 2.0f);
 		Grid_DebugDrawRay({ y_point.x   ,x_aabb.min.y,y_point.z }, { 0,1,0 }, 2.0f, { 0,1,0,1 });
 		Grid_DebugDrawRay({ z_point.x   ,z_point.y   ,z_aabb.min.z }, { 0,0,1 }, 2.0f, { 0,0,1,1 });
+//		AABB_Draw_Debug(x_aabb);
+//		AABB_Draw_Debug(y_aabb);
+//		AABB_Draw_Debug(z_aabb);
 	}
 	if (isMapping)
 	{
