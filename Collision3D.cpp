@@ -1,7 +1,15 @@
-#include "Collision3D.h"
+ï»¿#include "Collision3D.h"
 #include <algorithm>
 #include "DirectXMath.h"
+#include "Camera3D.h"
+#include "direct3d.h"
+#include "Grid.h"
+#include "Cube.h"
+#include "PlayerCamera.h"
 using namespace DirectX;
+
+
+
 
 bool Collision_IsOverlapAABB(const AABB& a,const AABB& b)
 {
@@ -31,12 +39,12 @@ Hit Collision_IsHitAABB(const AABB& a, const AABB& b)
 	{
 		if (ydepth > zdepth)
 		{
-			//z“I–Ê
+			//zçš„é¢
 			isShallowZ = true;
 		}
 		else
 		{
-			//y“I–Ê
+			//yçš„é¢
 			isShallowY = true;
 		}
 	}
@@ -44,12 +52,12 @@ Hit Collision_IsHitAABB(const AABB& a, const AABB& b)
 	{
 		if (zdepth > xdepth)
 		{
-			//x“I–Ê
+			//xçš„é¢
 			isShallowX = true;
 		}
 		else
 		{
-			//z“I–Ê
+			//zçš„é¢
 			isShallowZ = true;
 		}
 	}
@@ -79,4 +87,76 @@ bool Collision_IsOverlapSphere(const Sphere& a, const DirectX::XMFLOAT3& point)
 	XMVECTOR lsq = XMVector3LengthSq(centerB - centerA);
 
 	return a.radius * a.radius > XMVectorGetX(lsq);
+}
+Ray MakeMouseRay(float mouseX, float mouseY)
+{
+	DirectX::XMFLOAT4X4 view = PlayerCamera_GetMatrix ();
+	DirectX::XMFLOAT4X4 proj = PlayerCamera_GetMatrixPerspective();
+
+	DirectX::XMFLOAT3 nearP = PlayerCamera_GetCameraPos();
+	DirectX::XMFLOAT3 farP = Direct3D_ScreenToWorld(mouseX, mouseY, 1.0f, view, proj);;
+
+	using namespace DirectX;
+	XMVECTOR o = XMLoadFloat3(&nearP);
+	XMVECTOR f = XMLoadFloat3(&farP);
+	XMVECTOR d = XMVector3Normalize(f - o);
+
+	Ray ray{};
+	XMVector3Normalize(d);
+	XMStoreFloat3(&ray.origin, o);
+	XMStoreFloat3(&ray.dir, d);
+	return ray;
+}
+
+bool RayVsAABB(const Ray& ray, const AABB& box, float& tHit)
+{
+	// slab method
+	float tmin = 0.0f;
+	float tmax = FLT_MAX;
+
+	auto checkAxis = [&](float origin, float dir, float bmin, float bmax) -> bool
+		{
+			if (fabsf(dir) < 1e-6f)
+			{
+				// å¹³è¡Œï¼šorigin å¿…é ˆåœ¨å€é–“å…§
+				return (origin >= bmin && origin <= bmax);
+			}
+			float invD = 1.0f / dir;
+			float t0 = (bmin - origin) * invD;
+			float t1 = (bmax - origin) * invD;
+			if (t0 > t1) std::swap(t0, t1);
+			tmin = (t0 > tmin) ? t0 : tmin;
+			tmax = (t1 < tmax) ? t1 : tmax;
+			return (tmax >= tmin);
+		};
+
+	if (!checkAxis(ray.origin.x, ray.dir.x, box.min.x, box.max.x)) return false;
+	if (!checkAxis(ray.origin.y, ray.dir.y, box.min.y, box.max.y)) return false;
+	if (!checkAxis(ray.origin.z, ray.dir.z, box.min.z, box.max.z)) return false;
+
+	tHit = tmin;
+	return true;
+}
+
+
+
+void Debug_DrawRay(const Ray& ray)
+{
+	XMFLOAT3 start = ray.origin;
+	XMFLOAT3 end =
+	{
+		ray.origin.x + ray.dir.x * 100.0f,
+		ray.origin.y + ray.dir.y * 100.0f,
+		ray.origin.z + ray.dir.z * 100.0f,
+	};
+	Cube_Draw(end);
+//	for (int i = 3; i < 10; i++)
+//	{
+//		Cube_Draw({
+//		ray.origin.x + ray.dir.x * 5.0f * i,
+//		ray.origin.y + ray.dir.y * 5.0f * i,
+//		ray.origin.z + ray.dir.z * 5.0f * i,
+//		});
+//	}
+	Grid_DebugDrawRay(start, ray.dir, 10000.0f); // ç´…è‰²
 }

@@ -9,12 +9,22 @@
 #include "MouseRenderer.h"
 #include "Model_Static.h"
 #include "Player3D.h"
+#include "PlayerData.h"
+#include <sstream>
+#include "debug_text.h"
+#include "NekoTool.h"
+#include "Grid.h"
 using namespace DirectX; 
 
 static constexpr int g_MapObjectCount = 1024;
+static int nowMappingIndex = 1;
+
+static MapObject* chosingObj;
 
 static MODEL_STATIC* CoinModelTexId;
-
+void Map_IsTriggerUpdate();
+void Map_MakingUpdate(double elapsed_time);
+int PickObjectIndex(float mouseX, float mouseY);
 static MapObject g_MapObjects[g_MapObjectCount]
 {
 	{1,{ 0.0f,10.0f, 0.0f}},
@@ -83,6 +93,27 @@ void Map_Update(double elapsed_time)
 	{
 		LoadMap("TestMap.map");
 	}
+	Map_IsTriggerUpdate();
+	Map_MakingUpdate(elapsed_time);
+	if (!isMapping)
+	{
+		if (MouseLogger_IsTrigger(0))
+		{
+			int i = PickObjectIndex(Get_Mouse_Info().x, Get_Mouse_Info().y);
+			if (i == -1)
+			{
+				chosingObj = nullptr;
+			}
+			else
+			{
+			chosingObj = &g_MapObjects[i];
+			}
+			
+		}
+	}
+}
+void Map_IsTriggerUpdate()
+{
 	AABB player = GetPlayer_AABB();
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
@@ -93,11 +124,35 @@ void Map_Update(double elapsed_time)
 		Hit hit = Collision_IsHitAABB(Object, player);
 		if (hit.isHit)
 		{
+			switch (g_MapObjects[i].KindId)
+			{
+			case 2: // 撿到金幣
+				PlayerData_AddCoin(1);
+				break;
+			default:
+				break;
+			}
 			g_MapObjects[i].KindId = -1;
 		}
 	}
 }
-
+void Map_MakingUpdate(double elapsed_time)
+{
+	if (isMapping)
+	{
+		if (MouseLogger_IsScroll().trigger)
+		{
+			if (MouseLogger_IsScroll().value>0)
+			{
+				nowMappingIndex = clamp(nowMappingIndex + 1, 1, 2);
+			}
+			else
+			{
+				nowMappingIndex = clamp(nowMappingIndex - 1, 1, 2);
+			}
+		}
+	}
+}
 void Map_Draw()
 {
 	for (const MapObject& o:g_MapObjects)
@@ -109,29 +164,71 @@ void Map_Draw()
 			break;
 		case 2:
 			Model_Static_Draw(CoinModelTexId,new GameObject(o.Position));
+			AABB_Draw_Debug(o.Collision);
 			break;
 		default:
 			break;
 		}
 	}
+	if (chosingObj!=nullptr)
+	{
+
+		AABB_Draw_Debug_Size(chosingObj->Collision,0.1f);
+	}
 	if (isMapping)
 	{
 		Sprite_Draw(mapIconTexId, 200, 50, 50, 50, 1.0f, {1,1,1,1});
-		Cube_Draw(GetMouseToMapLocation());
-
+		
+		switch (nowMappingIndex)
+		{
+		case 1:
+			Cube_Draw(GetMouseToMapLocation());
+			break;
+		case 2:
+			Model_Static_Draw(CoinModelTexId, new GameObject(GetMouseToMapLocation()));
+			break;
+		default:
+			break;
+		}
 		if (MouseLogger_IsTrigger(0))
 		{
 			for (int i = 0; i < g_MapObjectCount; i++)
 			{
 				if (g_MapObjects[i].KindId != -1)continue;
-				g_MapObjects[i].KindId = 1;
+				g_MapObjects[i].KindId = nowMappingIndex;
 				g_MapObjects[i].Position = GetMouseToMapLocation();
-				g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+				switch (g_MapObjects[i].KindId)
+				{
+				case 1:
+					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = false;
+					break;
+				case 2:
+					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = true;
+					break;
+				default:
+					break;
+				}
 				return;
 			}
 		}
 	}
-	
+#if defined(DEBUG)||defined(_DEBUG)
+	hal::DebugText dt(Direct3D_GetDevice(), Direct3D_GetContext(),
+		L"consolab_ascii_512.png",
+		Direct3D_GetBackBufferWidth(), Direct3D_GetBackBufferHeight(),
+		0.0f, Direct3D_GetBackBufferHeight()-50.0f,
+		0, 0,
+		0.0f, 0.0f);
+	std::stringstream ss;
+	ss <<"COIN: "<< PlayerData_GetCoin();
+	dt.SetText(ss.str().c_str());
+	//dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
+
+	dt.Draw();
+	dt.Clear();
+#endif 
 }
 
 int Map_GetObjectsCount()
@@ -173,4 +270,27 @@ void LoadMap(const char* filename)
 	);
 
 	ifs.close();
+}
+int PickObjectIndex(float mouseX, float mouseY)
+{
+	Ray ray = MakeMouseRay(mouseX, mouseY);
+
+	int best = -1;
+	float bestT = FLT_MAX;
+
+	for (int i = 0; i < g_MapObjectCount; i++)
+	{
+		if (g_MapObjects[i].KindId == -1)continue;
+		const MapObject* obj = Map_GetObjects(i);
+		float t;
+		if (RayVsAABB(ray, obj->Collision, t))
+		{
+			if (t >= 0.0f && t < bestT)
+			{
+				bestT = t;
+				best = i;
+			}
+		}
+	}
+	return best;
 }

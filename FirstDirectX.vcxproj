@@ -180,6 +180,7 @@
     <ClCompile Include="Model_Static.cpp" />
     <ClCompile Include="Player3D.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
+    <ClCompile Include="PlayerData.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="Scene3D.cpp" />
     <ClCompile Include="Shader3D.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="Model_Static.h" />
     <ClInclude Include="Player3D.h" />
     <ClInclude Include="PlayerCamera.h" />
+    <ClInclude Include="PlayerData.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="Scene3D.h" />
     <ClInclude Include="Shader3D.h" />

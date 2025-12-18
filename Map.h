@@ -3,6 +3,7 @@
 #include "DirectXMath.h"
 #include "Collision3D.h"
 
+
 struct MapObject
 {
 	int KindId = -1;

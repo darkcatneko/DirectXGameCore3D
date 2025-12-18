@@ -29,6 +29,7 @@
 #include "Light_Camera.h"
 #include "ShaderField.h"
 #include "circle_shadow.h"
+#include "NekoTool.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -162,13 +163,20 @@ void Scene3D_Draw()
 	
 
 	Sky_Draw();
+	Grid_Draw({ 0,GetMouseToMapLocation().y,0 }, { 0,0,0 }, { 1,1,1 });
+
+	Ray ray = MakeMouseRay(Get_Mouse_Info().x, Get_Mouse_Info().y);
+	Debug_DrawRay(ray);
+    //Cube_Draw(target, { 0,0,0 }, {0.1f,0.1f,0.1f});
+
+
 	MeshField_Draw(g_meshPosition);
 	//Cube_Draw(g_cubePosition);
 	Enemy_Draw();
 	Player3D_Draw();
 	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, Camera_GetCameraPos());
 	Bullet3D_Draw();
-	//Grid_Draw();
+	Map_Draw();
 	Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
 	CircleShadow_Draw(GetPlayerPosition());

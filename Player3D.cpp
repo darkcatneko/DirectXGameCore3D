@@ -289,10 +289,8 @@ void Player3D_Draw()
 		g_PlayerPosition.y,
 		g_PlayerPosition.z
 	);
-	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw)+180,0}, { 0.01f,0.01f,0.01f }));
-	Map_Draw();
-	
-	//Cube_Draw({ g_PlayerPosition.x,g_PlayerPosition.y+0.5f,g_PlayerPosition.z });
+	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw)+180,0}, { 0.01f,0.01f,0.01f }));	
+	Cube_Draw_Debug({ g_PlayerPosition.x,g_PlayerPosition.y + 0.5f,g_PlayerPosition.z }, { 0,0,0 }, {1,1,1});
 }
 
 const DirectX::XMFLOAT3& GetPlayerPosition()

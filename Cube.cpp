@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "Shader3D_Static.h"
 #include "Texture.h"
+#include "shader3d_unlit.h"
 using namespace DirectX;
 
 
@@ -14,6 +15,7 @@ static constexpr int NUM_INDEX = 36; // 頂点数
 static constexpr float CUBE_ALPHA = 1.0f; // 頂点数
 
 static ID3D11Buffer* g_pVertexBuffer = nullptr; // 頂点バッファ
+static ID3D11Buffer* g_pVertexDebugBuffer = nullptr; // 頂点バッファ
 static ID3D11Buffer* g_pIndexBuffer = nullptr; // インデックスバッファ
 static ID3D11ShaderResourceView* g_pTexture = nullptr;
 
@@ -26,7 +28,21 @@ static float g_rotate;
 static float g_scale;
 static double g_time;
 #pragma endregion
+ID3D11RasterizerState* g_pRS_Wireframe = nullptr;
+ID3D11RasterizerState* g_pRS_Solid = nullptr;
 
+void CreateRasterizerStates()
+{
+	D3D11_RASTERIZER_DESC rsDesc{};
+	rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rsDesc.CullMode = D3D11_CULL_NONE;   // Debug 建議關閉背面剔除
+	rsDesc.DepthClipEnable = TRUE;
+
+	g_pDevice->CreateRasterizerState(&rsDesc, &g_pRS_Wireframe);
+
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	g_pDevice->CreateRasterizerState(&rsDesc, &g_pRS_Solid);
+}
 
 #pragma region Vertex
 
@@ -70,6 +86,40 @@ static Vertex3D g_CubeVertex[24]
 	{{ 0.5f,-0.5f, 0.5f},{0.0f,-1.0f,0.0f},{1.0f,1.0f,1.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
 	{{-0.5f,-0.5f, 0.5f},{0.0f,-1.0f,0.0f},{1.0f,1.0f,1.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
 	{{ 0.5f,-0.5f,-0.5f},{0.0f,-1.0f,0.0f},{1.0f,1.0f,1.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+
+};
+static Vertex3D g_CubeVertexDebug[24]
+{
+	//前
+	{{-0.5f, 0.5f,-0.5f},{0.0f,0.0f,-1.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{ 0.5f,-0.5f,-0.5f},{0.0f,0.0f,-1.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{-0.5f,-0.5f,-0.5f},{0.0f,0.0f,-1.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{ 0.5f, 0.5f,-0.5f},{0.0f,0.0f,-1.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+	//右
+	{{ 0.5f, 0.5f,-0.5f},{1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{ 0.5f,-0.5f, 0.5f},{1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{ 0.5f,-0.5f,-0.5f},{1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{ 0.5f, 0.5f, 0.5f},{1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+	//上	
+	{{-0.5f, 0.5f, 0.5f},{0.0f,1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{ 0.5f, 0.5f,-0.5f},{0.0f,1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{-0.5f, 0.5f,-0.5f},{0.0f,1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{ 0.5f, 0.5f, 0.5f},{0.0f,1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+	//左
+	{{-0.5f, 0.5f, 0.5f},{-1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{-0.5f,-0.5f,-0.5f},{-1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{-0.5f,-0.5f, 0.5f},{-1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{-0.5f, 0.5f,-0.5f},{-1.0f,0.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+	//後
+	{{ 0.5f, 0.5f, 0.5f},{0.0f,0.0f,1.0f}, {0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{-0.5f,-0.5f, 0.5f},{0.0f,0.0f,1.0f}, {0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{ 0.5f,-0.5f, 0.5f},{0.0f,0.0f,1.0f}, {0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{-0.5f, 0.5f, 0.5f},{0.0f,0.0f,1.0f}, {0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
+	//下
+	{{-0.5f,-0.5f,-0.5f},{0.0f,-1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 0.0f}},
+	{{ 0.5f,-0.5f, 0.5f},{0.0f,-1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 1.0f}},
+	{{-0.5f,-0.5f, 0.5f},{0.0f,-1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {0.0f, 1.0f}},
+	{{ 0.5f,-0.5f,-0.5f},{0.0f,-1.0f,0.0f},{0.0f,1.0f,0.0f,CUBE_ALPHA}, {1.0f, 0.0f}},
 
 };
 //static Vertex3D g_CubeVertex[24] = {
@@ -131,10 +181,10 @@ static unsigned short g_cubeIndex[]
 };
 void Cube_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+
 	// デバイスとデバイスコンテキストの保存
 	g_pDevice = pDevice;
 	g_pContext = pContext;
-
 	// 頂点バッファ生成
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -146,6 +196,8 @@ void Cube_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	sd.pSysMem = g_CubeVertex;
 
 	g_pDevice->CreateBuffer(&bd, &sd, &g_pVertexBuffer);
+	sd.pSysMem = g_CubeVertexDebug;
+	g_pDevice->CreateBuffer(&bd, &sd, &g_pVertexDebugBuffer);
 
 	// インデックスバファ
 	bd.ByteWidth = sizeof(unsigned short) * NUM_INDEX;
@@ -156,11 +208,13 @@ void Cube_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_pDevice->CreateBuffer(&bd, &sd, &g_pIndexBuffer);
 
 	g_CubeTexTempId = Texture_Load(L"BlackWhite.png");
+	CreateRasterizerStates();
 }
 
 void Cube_Finitialize()
 {
 	SAFE_RELEASE(g_pVertexBuffer);
+	SAFE_RELEASE(g_pVertexDebugBuffer);
 	SAFE_RELEASE(g_pIndexBuffer);
 }
 
@@ -198,10 +252,85 @@ void Cube_Draw(XMFLOAT3 gameobjectPos)
 	// プリミティブトポロジ設定
 	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	// ポリゴン描画命令発行
 	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
 
+}
+
+void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale)
+{
+	Shader3D_Static_Begin();
+	Shader3d_Static_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// 頂点バッファを描画パイプラインに設定
+	Texture_SetTexture(g_CubeTexTempId);
+	UINT stride = sizeof(Vertex3D);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+
+	// インデックスバッファを描画パイプラインに設定
+	g_pContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//world matrix
+	//XMMATRIX mtxWorld = XMMatrixIdentity();
+	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(
+		XMConvertToRadians(gameobjectRot.x),   // X
+		XMConvertToRadians(gameobjectRot.y),   // Y
+		XMConvertToRadians(gameobjectRot.z)    // Z
+	);
+	XMMATRIX mtxScale = XMMatrixScaling(
+		gameobjectScale.x,
+		gameobjectScale.y,
+		gameobjectScale.z
+	);
+	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
+	Shader3D_Static_SetWorldMatrix(mtxWorld);
+
+
+	// プリミティブトポロジ設定
+	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// ポリゴン描画命令発行
+	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
+}
+
+void Cube_Draw_Debug(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale)
+{
+	Shader3dUnlit_Begin();
+	Shader3DUnilt_SetColor({ 0.0f, 1.0f, 0.0f, 1.0f });
+	// 頂点バッファを描画パイプラインに設定
+	Texture_SetTexture(g_CubeTexTempId);
+	UINT stride = sizeof(Vertex3D);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexDebugBuffer, &stride, &offset);
+
+	// インデックスバッファを描画パイプラインに設定
+	g_pContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//world matrix
+	//XMMATRIX mtxWorld = XMMatrixIdentity();
+	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
+	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(
+		XMConvertToRadians(gameobjectRot.x),   // X
+		XMConvertToRadians(gameobjectRot.y),   // Y
+		XMConvertToRadians(gameobjectRot.z)    // Z
+	);
+	XMMATRIX mtxScale = XMMatrixScaling(
+		gameobjectScale.x,
+		gameobjectScale.y,
+		gameobjectScale.z
+	);
+	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
+	Shader3DUnilt_SetWorldMatrix(mtxWorld);
+
+
+	// プリミティブトポロジ設定
+	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	g_pContext->RSSetState(g_pRS_Wireframe);
+	// ポリゴン描画命令発行
+	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
+	g_pContext->RSSetState(g_pRS_Solid);
 }
 
 AABB Cube_GetAABB(const DirectX::XMFLOAT3& position)
@@ -210,4 +339,26 @@ AABB Cube_GetAABB(const DirectX::XMFLOAT3& position)
 		{position.x + 0.5f, position.y + 0.5f,position.z + 0.5f},
 		{position.x - 0.5f, position.y - 0.5f,position.z - 0.5f}
 	};
+}
+
+void AABB_Draw_Debug(const AABB& aabb)
+{
+	DirectX::XMFLOAT3 center = aabb.GetCenter();
+	DirectX::XMFLOAT3 size = aabb.GetSize();
+
+	DirectX::XMFLOAT3 rot = { 0.0f, 0.0f, 0.0f };
+
+	Cube_Draw_Debug(center, rot, size);
+}
+void AABB_Draw_Debug_Size(const AABB& aabb,float sizef)
+{
+	DirectX::XMFLOAT3 center = aabb.GetCenter();
+	DirectX::XMFLOAT3 size = aabb.GetSize();
+	size.x += sizef;
+	size.y += sizef;
+	size.z += sizef;
+
+	DirectX::XMFLOAT3 rot = { 0.0f, 0.0f, 0.0f };
+
+	Cube_Draw_Debug(center, rot, size);
 }
