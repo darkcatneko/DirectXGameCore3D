@@ -261,7 +261,7 @@ void Player3D_Movement(float elapsed_time)
 			}
 			else if (hit.normal.y < 0.0f)
 			{
-				player_pos = XMVectorSetY(player_pos, Object.min.y - 1.0f);
+				player_pos = XMVectorSetY(player_pos, Object.min.y - 1.5f);
 				player_velocity *= { 1.0f, 0.0f, 1.0f};
 			}
 			else if (hit.normal.z > 0.0f)
@@ -290,7 +290,9 @@ void Player3D_Draw()
 		g_PlayerPosition.z
 	);
 	ModelDraw(g_pPlayerModel, new GameObject(g_PlayerPosition, {0,XMConvertToDegrees(g_PlayerYaw)+180,0}, { 0.01f,0.01f,0.01f }));	
-	Cube_Draw_Debug({ g_PlayerPosition.x,g_PlayerPosition.y + 0.5f,g_PlayerPosition.z }, { 0,0,0 }, {1,1,1});
+	
+	//Cube_Draw_Debug({ g_PlayerPosition.x,g_PlayerPosition.y + 0.5f,g_PlayerPosition.z }, { 0,0,0 }, {1,1,1});
+	AABB_Draw_Debug(GetPlayer_AABB());
 }
 
 const DirectX::XMFLOAT3& GetPlayerPosition()
@@ -306,7 +308,7 @@ const DirectX::XMFLOAT3& GetPlayerFront()
 AABB GetPlayer_AABB()
 {
 	return {
-		{g_PlayerPosition.x + 0.5f, g_PlayerPosition.y + 1.0f,g_PlayerPosition.z + 0.5f},
+		{g_PlayerPosition.x + 0.5f, g_PlayerPosition.y + 1.5f,g_PlayerPosition.z + 0.5f},
 		{g_PlayerPosition.x - 0.5f, g_PlayerPosition.y  ,g_PlayerPosition.z - 0.5f}
 	};
 }
@@ -498,7 +500,12 @@ void PlayerStateMachine::PlayerThrowState::Draw() const
 void PlayerStateMachine::PlayerThrowState::InState()
 {
 	isThrowing = true;
-	Bullet3D_CreateBullet(g_PlayerPosition, g_PlayerFront);
+	XMFLOAT3 throwPoint = {
+		g_PlayerPosition.x + g_PlayerFront.x * 0.25f,
+		g_PlayerPosition.y + 1.0f,
+		g_PlayerPosition.z + g_PlayerFront.z * 0.25f
+	};
+	Bullet3D_CreateBullet(throwPoint, g_PlayerFront);
 	g_Animator.CrossFadeToZero(*g_pPlayerModel, g_Animator, "Throw", 0.25f);
 	g_PlayerVelocity = { 0,0,0 };
 }
