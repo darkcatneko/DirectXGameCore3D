@@ -8,7 +8,7 @@
 ==============================================================================*/
 #ifndef ENEMY_H
 #define ENEMY_H
-
+#include "Collision3D.h"
 #include <DirectXMath.h>
 
 class Enemy {
@@ -40,6 +40,5 @@ void Enemy_Finalize();
 void Enemy_Update(double elapsed_time);
 void Enemy_Draw();
 void Enemy_Create(const DirectX::XMFLOAT3& position);
-
 
 #endif //ENEMY_H

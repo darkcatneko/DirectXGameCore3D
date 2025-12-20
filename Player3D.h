@@ -13,6 +13,8 @@ const DirectX::XMFLOAT3& GetPlayerFront();
 AABB GetPlayer_AABB();
 AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position);
 
+void StartPlayer_MonsterControl();
+
 class StateMachine
 {
 	protected :
@@ -105,6 +107,7 @@ private:
 		void InState() override;
 		void OutState() override;
 	};
+
 	class PlayerFallState : public State
 	{
 	private:
@@ -112,6 +115,21 @@ private:
 
 	public:
 		PlayerFallState(PlayerStateMachine* pOwner)
+			: m_pOwner(pOwner) {
+		}
+		void Update(double elapsed_time) override;
+		void Draw() const override;
+		void InState() override;
+		void OutState() override;
+	};
+
+	class PlayerControllingState : public State
+	{
+	private:
+		PlayerStateMachine* m_pOwner{};
+
+	public:
+		PlayerControllingState(PlayerStateMachine* pOwner)
 			: m_pOwner(pOwner) {
 		}
 		void Update(double elapsed_time) override;

@@ -41,5 +41,5 @@ void Bullet3D_CreateBullet(const DirectX::XMFLOAT3& position, const DirectX::XMF
 void Bullet3D_Destroy(int index);
 
 AABB Bullet_GetAABB(int index);
-
+DirectX::XMFLOAT3 Bullet3D_GetPos(int index);
 #endif

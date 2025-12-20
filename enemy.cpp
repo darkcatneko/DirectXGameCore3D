@@ -63,7 +63,8 @@ void Enemy_Update(double elapsed_time){
 }
 
 void Enemy_Draw(){
-	for (int i = 0;i < g_EnemyCount;i++) {
+	for (int i = 0;i < g_EnemyCount;i++) 
+	{
 		g_Enemys[i]->Draw();
 	}
 }
@@ -72,3 +73,6 @@ void Enemy_Create(const DirectX::XMFLOAT3& position){
 	g_Enemys[g_EnemyCount] = new EnemyNormal(position);
 	g_EnemyCount++;
 }
+
+
+

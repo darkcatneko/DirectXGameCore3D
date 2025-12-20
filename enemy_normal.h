@@ -16,7 +16,7 @@ class EnemyNormal : public Enemy
 {
 private:
 	DirectX::XMFLOAT3 m_Position{};
-	float m_DetectionRadius{ 3.0f };
+	float m_DetectionRadius{ 2.5f };
 	int m_Hp{ 100 };
 
 public:
@@ -28,6 +28,7 @@ public:
 	bool IsDestroy() const override {
 		return m_Hp <= 0;
 	}
+	void Update(double elapsed_time) override;
 
 private:
 	class EnemyNormalStatePatrol : public State {
@@ -51,6 +52,19 @@ private:
 
 	public:
 		EnemyNormalStateChase(EnemyNormal* pOwner)
+			: m_pOwner(pOwner) {
+		}
+		void Update(double elapsed_time) override;
+		void Draw() const override;
+	};
+
+	class EnemyNormalStateBeHit : public State {
+	private:
+		EnemyNormal* m_pOwner{};
+		double m_AccumulatedTime{};
+
+	public:
+		EnemyNormalStateBeHit(EnemyNormal* pOwner)
 			: m_pOwner(pOwner) {
 		}
 		void Update(double elapsed_time) override;

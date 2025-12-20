@@ -1,6 +1,7 @@
 #include "model_Static.h"
 #include "Bullet3D.h"
 #include "DirectXMath.h"
+#include "enemy.h"
 using namespace DirectX;
 static Bullet3D* g_pBullets[MAX_BULLET]{};
 static int g_BulletsCount{ 0 };
@@ -34,6 +35,7 @@ void Bullet3D_Update(double elapsed_time)
 	}
 }
 
+
 void Bullet3D_Draw()
 {
 	for (size_t i = 0; i < g_BulletsCount; i++)
@@ -64,13 +66,18 @@ void Bullet3D_Destroy(int index)
 
 AABB Bullet_GetAABB(int index)
 {
-
 	return 
 	{
 		{ g_pBullets[index]->GetPosition().x + 0.05f, g_pBullets[index]->GetPosition().y + 0.05f,g_pBullets[index]->GetPosition().z + 0.05f},
 		{ g_pBullets[index]->GetPosition().x - 0.05f, g_pBullets[index]->GetPosition().y - 0.05f,g_pBullets[index]->GetPosition().z - 0.05f}
 	};
 }
+
+DirectX::XMFLOAT3 Bullet3D_GetPos(int index)
+{
+	return g_pBullets[index]->GetPosition();
+}
+
 
 void Bullet3D::Update(double elasped_time)
 {

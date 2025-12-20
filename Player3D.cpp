@@ -36,6 +36,9 @@ namespace {
 
 	bool isThrowing = false;
 	float throwTimer = 0.0f;
+	
+	bool ControllingTrigger = false;
+	bool isControlling = false;
 }
 void Player3D_Movement(float elapsed_time);
 
@@ -70,7 +73,7 @@ void  Player3D_Update(double elapsed_time)
 {
 	g_PlayerStateMachine->UpdateState();
 	g_PlayerStateMachine->Update(elapsed_time);
-	if (!isThrowing)
+	if (!isThrowing && !isControlling)
 	{
 		Player3D_Movement(elapsed_time);
 	}
@@ -320,12 +323,15 @@ AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
 	XMStoreFloat3(&aabb.max, position + XMVECTOR{ 0.5f,0.5f,0.5f });
 	return aabb;
 }
+void StartPlayer_MonsterControl()
+{
+	ControllingTrigger = true;
+}
 //////////////////////////////////
 
 void StateMachine::Update(double elapsed_time)
-{
-	
-	m_pState->Update(elapsed_time);
+{	
+	m_pState->Update(elapsed_time);	
 }
 
 void StateMachine::Draw() const
@@ -378,6 +384,11 @@ void PlayerStateMachine::PlayerRunState::Update(double elapsed_time)
 	{
 			m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
 	}
+	if (ControllingTrigger)
+	{
+		ControllingTrigger = false;
+		m_pOwner->ChangeState(new PlayerControllingState(m_pOwner));
+	}
 }
 
 void PlayerStateMachine::PlayerRunState::Draw() const
@@ -411,6 +422,11 @@ void PlayerStateMachine::PlayerIdleState::Update(double elapsed_time)
 	if (g_PlayerVelocity.y < 0.0f)
 	{
 		m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
+	}
+	if (ControllingTrigger)
+	{
+		ControllingTrigger = false;
+		m_pOwner->ChangeState(new PlayerControllingState(m_pOwner));
 	}
 }
 
@@ -452,6 +468,7 @@ void PlayerStateMachine::PlayerJumpState::Update(double elapsed_time)
 			m_pOwner->ChangeState(new PlayerFallState(m_pOwner));
 		}
 	}
+
 }
 
 void PlayerStateMachine::PlayerJumpState::Draw() const
@@ -548,3 +565,38 @@ void PlayerStateMachine::PlayerFallState::OutState()
 {
 }
 ////////
+
+void PlayerStateMachine::PlayerControllingState::Update(double elapsed_time)
+{
+	if (KeyLogger_IsTrigger(KK_C))
+	{
+		isControlling = false;
+		auto speedtest = XMLoadFloat3(&g_PlayerVelocity) * XMVECTOR { 1, 0, 1 };
+		float size = XMVectorGetX(XMVector3Length(speedtest));
+		if (size <= 0.01f || !(KeyLogger_IsPressed(KK_I) || KeyLogger_IsPressed(KK_J) || KeyLogger_IsPressed(KK_K) || KeyLogger_IsPressed(KK_L)))
+		{
+			m_pOwner->ChangeState(new PlayerIdleState(m_pOwner));
+		}
+		else
+		{
+			g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Run", 0.05f);
+			m_pOwner->ChangeState(new PlayerRunState(m_pOwner));
+		}
+	}
+}
+
+void PlayerStateMachine::PlayerControllingState::Draw() const
+{
+}
+
+void PlayerStateMachine::PlayerControllingState::InState()
+{
+	isControlling = true;
+	g_PlayerVelocity = { 0,0,0 };
+	g_Animator.CrossFade(*g_pPlayerModel, g_Animator, "Idle", 0.15f);
+	
+}
+
+void PlayerStateMachine::PlayerControllingState::OutState()
+{
+}

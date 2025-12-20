@@ -5,6 +5,7 @@
 #include "direct3d.h"
 #include "shader.h"
 #include "Shader3D.h"
+#include "Collision3D.h"
 
 
 void Grid_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -17,6 +18,10 @@ void Grid_DebugDrawRay(
 	const DirectX::XMFLOAT3& dir,
 	float length,
 	DirectX::XMFLOAT4 = { 1.0f,0.0f,0.0f,1.0f }
+);
+void Grid_DebugDrawSphere(
+	const Sphere& sphere,
+	const DirectX::XMFLOAT4& color
 );
 #endif // !GRID_H
 
