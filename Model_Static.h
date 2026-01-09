@@ -1,4 +1,4 @@
-#ifndef MODEL_STATIC_H
+﻿#ifndef MODEL_STATIC_H
 #define MODEL_STATIC_H
 
 #include <unordered_map>
@@ -13,7 +13,12 @@
 #include "Collision3D.h"
 #include "GameObject.h"
 
-
+struct TriMeshCollider
+{
+	std::vector<DirectX::XMFLOAT3> positions; // local-space vertex positions
+	std::vector<uint32_t> indices;            // 3 indices per triangle
+	AABB localAabb;                           // broadphase per mesh
+};
 
 struct MODEL_STATIC
 {
@@ -24,6 +29,7 @@ struct MODEL_STATIC
 
 	std::unordered_map<std::string, ID3D11ShaderResourceView*> Texture;
 
+	std::vector<TriMeshCollider> colliders;   // <= 新增：每個 aiMesh 一個                          
 	AABB Local;
 };
 

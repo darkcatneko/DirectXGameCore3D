@@ -1,4 +1,4 @@
-#include "assert.h"
+ï»¿#include "assert.h"
 #include "direct3d.h"
 #include "texture.h"
 #include "Model_Static.h"
@@ -27,7 +27,6 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 
 
 
-
 	model->AiScene = aiImportFile(FileName, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_ConvertToLeftHanded);
 	assert(model->AiScene);
 
@@ -35,27 +34,55 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 	model->IndexBuffer = new ID3D11Buffer * [model->AiScene->mNumMeshes];
 
 
+	model->colliders.resize(model->AiScene->mNumMeshes);
 	for (unsigned int m = 0; m < model->AiScene->mNumMeshes; m++)
 	{
 		aiMesh* mesh = model->AiScene->mMeshes[m];
+		auto& col = model->colliders[m];
 
+		col.positions.resize(mesh->mNumVertices);
+		bool aabbInit = false;
 
-		// ’¸“_ƒoƒbƒtƒ@¶¬
+		// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 		{
 			Vertex* vertex = new Vertex[mesh->mNumVertices];
 
 			for (unsigned int v = 0; v < mesh->mNumVertices; v++)
 			{
+				DirectX::XMFLOAT3 pos;
 				if (bBlender) {
-					vertex[v].position = XMFLOAT3(mesh->mVertices[v].x * scale, -mesh->mVertices[v].z * scale, mesh->mVertices[v].y * scale);
+					pos = { mesh->mVertices[v].x * scale,
+				   -mesh->mVertices[v].z * scale,
+					mesh->mVertices[v].y * scale };
 					vertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, -mesh->mNormals[v].z, mesh->mNormals[v].y);
 				}
 				else {
-					vertex[v].position = XMFLOAT3(mesh->mVertices[v].x * scale, mesh->mVertices[v].y * scale, mesh->mVertices[v].z * scale);
+					pos = { mesh->mVertices[v].x * scale,
+				   mesh->mVertices[v].y * scale,
+				   mesh->mVertices[v].z * scale };
 					vertex[v].normal = XMFLOAT3(mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z);
 				}
+				vertex[v].position = pos;
 				vertex[v].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 				vertex[v].texcoord = XMFLOAT2(mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y);
+
+				// ====== å­˜ç¢°æ’ç”¨ positionsï¼ˆlocal spaceï¼‰======
+				col.positions[v] = pos;
+
+				// ====== æ›´æ–° mesh local AABB ======
+				if (!aabbInit) {
+					col.localAabb.min = pos;
+					col.localAabb.max = pos;
+					aabbInit = true;
+				}
+				else {
+					col.localAabb.min.x = std::min(col.localAabb.min.x, pos.x);
+					col.localAabb.min.y = std::min(col.localAabb.min.y, pos.y);
+					col.localAabb.min.z = std::min(col.localAabb.min.z, pos.z);
+					col.localAabb.max.x = std::max(col.localAabb.max.x, pos.x);
+					col.localAabb.max.y = std::max(col.localAabb.max.y, pos.y);
+					col.localAabb.max.z = std::max(col.localAabb.max.z, pos.z);
+				}
 				if (v == 0)
 				{
 					model->Local.min = vertex[v].position;
@@ -90,7 +117,7 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 
 
 
-		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 		{
 			unsigned int* index = new unsigned int[mesh->mNumFaces * 3];
 
@@ -103,6 +130,17 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 				index[f * 3 + 0] = face->mIndices[0];
 				index[f * 3 + 1] = face->mIndices[1];
 				index[f * 3 + 2] = face->mIndices[2];
+			}
+			col.indices.resize(mesh->mNumFaces * 3);
+
+			for (unsigned int f = 0; f < mesh->mNumFaces; f++)
+			{
+				const aiFace* face = &mesh->mFaces[f];
+				assert(face->mNumIndices == 3);
+
+				col.indices[f * 3 + 0] = (uint32_t)face->mIndices[0];
+				col.indices[f * 3 + 1] = (uint32_t)face->mIndices[1];
+				col.indices[f * 3 + 2] = (uint32_t)face->mIndices[2];
 			}
 
 			D3D11_BUFFER_DESC bd;
@@ -127,7 +165,7 @@ MODEL_STATIC* Model_Static_Load(const char* FileName, float scale, bool bBlender
 
 	g_textureWhite = Texture_Load(L"white.png");
 
-	//ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+	//ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿
 	for (int i = 0; i < model->AiScene->mNumTextures; i++)
 	{
 
@@ -246,7 +284,7 @@ void Model_Static_Draw(MODEL_STATIC* model, GameObject* gameobject)
 	Shader3D_Static_Begin();
 
 
-	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è
+	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®š
 	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	Direct3D_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//world matrix
@@ -280,22 +318,22 @@ void Model_Static_Draw(MODEL_STATIC* model, GameObject* gameobject)
 
 
 
-		// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+		// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
 		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
-		// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+		// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
 		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces * 3, 0, 0);
 	}
 }
 void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld)
 {
-	// ƒVƒF[ƒ_[‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+	// ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 	Shader3dUnlit_Begin();
 
-	// ƒvƒŠƒ~ƒeƒBƒuƒgƒ|ƒƒWİ’è
+	// ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ãƒˆãƒãƒ­ã‚¸è¨­å®š
 	Direct3D_GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Shader3DUnilt_SetWorldMatrix(mtxWorld);
@@ -320,13 +358,13 @@ void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld)
 		aiColor3D diffuse;
 		aimaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
 		Shader3DUnilt_SetColor({ diffuse.r, diffuse.g, diffuse.b, 1.0f });
-		// ’¸“_ƒoƒbƒtƒ@‚ğ•`‰æƒpƒCƒvƒ‰ƒCƒ“‚Éİ’è
+		// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æç”»ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã«è¨­å®š
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		Direct3D_GetContext()->IASetVertexBuffers(0, 1, &model->VertexBuffer[m], &stride, &offset);
 		Direct3D_GetContext()->IASetIndexBuffer(model->IndexBuffer[m], DXGI_FORMAT_R32_UINT, 0);
 
-		// ƒ|ƒŠƒSƒ“•`‰æ–½—ß”­s
+		// ãƒãƒªã‚´ãƒ³æç”»å‘½ä»¤ç™ºè¡Œ
 		Direct3D_GetContext()->DrawIndexed(model->AiScene->mMeshes[m]->mNumFaces * 3, 0, 0);
 	}
 }

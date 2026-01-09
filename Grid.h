@@ -6,6 +6,7 @@
 #include "shader.h"
 #include "Shader3D.h"
 #include "Collision3D.h"
+#include "Model_Static.h"
 
 
 void Grid_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -22,6 +23,16 @@ void Grid_DebugDrawRay(
 void Grid_DebugDrawSphere(
 	const Sphere& sphere,
 	const DirectX::XMFLOAT4& color
+);
+void DrawTriMesh_Gizmo(
+	      TriMeshCollider& col,
+	const DirectX::XMFLOAT3& world,
+	const DirectX::XMFLOAT4& color);
+
+void Debug_DrawLine(
+	const DirectX::XMFLOAT3& origin,
+	const DirectX::XMFLOAT3& end,
+	DirectX::XMFLOAT4 color
 );
 #endif // !GRID_H
 

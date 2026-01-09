@@ -6,6 +6,7 @@
 #include "shader3d_unlit.h"
 #include "Texture.h"
 #include "Collision3D.h"
+#include "Model_Static.h"
 using namespace DirectX;
 
 #pragma region 宣告
@@ -252,4 +253,80 @@ void Grid_DebugDrawSphere(const Sphere& sphere, const XMFLOAT4& color)
 	Shader3DUnilt_SetWorldMatrix(XMMatrixIdentity());
 
 	g_pContext->Draw(SPHERE_VERTEX_COUNT, 0);
+}
+
+void DrawTriMesh_Gizmo(
+	 TriMeshCollider& col,
+	const DirectX::XMFLOAT3& world,
+	const DirectX::XMFLOAT4& color)
+{
+	using namespace DirectX;
+
+	for (size_t i = 0; i < col.indices.size(); i += 3)
+	{
+		const XMFLOAT3& p0 = col.positions[col.indices[i + 0]];
+		const XMFLOAT3& p1 = col.positions[col.indices[i + 1]];
+		const XMFLOAT3& p2 = col.positions[col.indices[i + 2]];
+		//world matrix
+		XMMATRIX mtxTrans = XMMatrixTranslation(world.x , world.y, world.z );
+		XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(
+			XMConvertToRadians(0),   // X
+			XMConvertToRadians(0),   // Y
+			XMConvertToRadians(0)    // Z
+		);
+		XMMATRIX mtxScale = XMMatrixScaling(
+			1,
+			1,
+			1
+		);
+
+		XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
+		XMVECTOR v0 = XMVector3TransformCoord(XMLoadFloat3(&p0), mtxWorld);
+		XMVECTOR v1 = XMVector3TransformCoord(XMLoadFloat3(&p1), mtxWorld);
+		XMVECTOR v2 = XMVector3TransformCoord(XMLoadFloat3(&p2), mtxWorld);
+
+		XMFLOAT3 vv0, vv1, vv2;
+		XMStoreFloat3(&vv0, v0);
+		XMStoreFloat3(&vv1, v1);
+		XMStoreFloat3(&vv2, v2);
+
+		Debug_DrawLine(vv0, vv1, color);
+		Debug_DrawLine(vv1, vv2, color);
+		Debug_DrawLine(vv2, vv0, color);
+	}
+}
+void Debug_DrawLine(
+	const XMFLOAT3& origin,
+	const XMFLOAT3& end,
+	XMFLOAT4 color
+)
+{
+	Vertex3D v[2];
+
+	v[0].position = origin;
+	v[0].color = color; // 紅色起點
+
+	v[1].position = end;
+	v[1].color = color; // 紅色起點
+
+	// 更新 VertexBuffer
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	g_pContext->Map(g_pDebugRayVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	memcpy(mapped.pData, v, sizeof(v));
+	g_pContext->Unmap(g_pDebugRayVB, 0);
+
+	// Draw
+	Shader3dUnlit_Begin();
+	Shader3DUnilt_SetColor(color);
+	Texture_SetTexture(whiteTex, 0);
+
+	UINT stride = sizeof(Vertex3D);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pDebugRayVB, &stride, &offset);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	// World = Identity（因為 v 已經是 world space）
+	Shader3DUnilt_SetWorldMatrix(XMMatrixIdentity());
+
+	g_pContext->Draw(2, 0);
 }

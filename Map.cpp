@@ -22,6 +22,7 @@ static int nowMappingIndex = 1;
 static MapObject* chosingObj;
 
 static MODEL_STATIC* CoinModelTexId;
+static MODEL_STATIC* MushroomTexId;
 void Map_IsTriggerUpdate();
 void Map_MakingUpdate(double elapsed_time);
 int PickObjectIndex(float mouseX, float mouseY); 
@@ -71,7 +72,8 @@ bool isMovingObject = false;
 void Map_Initialize()
 {
 	mapIconTexId = Texture_Load(L"mapIcon.png");
-	CoinModelTexId = Model_Static_Load("coin.fbx", 0.005f, false);
+	CoinModelTexId = Model_Static_Load("Grass_01a.fbx", 20.0f, true);
+	MushroomTexId = Model_Static_Load("Amanita_big.fbx", 0.01f, false);
 	for (MapObject& o : g_MapObjects)
 	{
 		if (o.KindId == -1)continue;
@@ -84,6 +86,10 @@ void Map_Initialize()
 		case 2:
 			o.Collision = Cube_GetAABB(o.Position);
 			o.IsTriggered = true;
+			break;
+		case 3:
+			o.Collision = Cube_GetAABB(o.Position);
+			o.IsTriggered = false;
 			break;
 		default:
 			break;
@@ -353,11 +359,11 @@ void Map_MakingUpdate(double elapsed_time)
 		{
 			if (MouseLogger_IsScroll().value>0)
 			{
-				nowMappingIndex = clamp(nowMappingIndex + 1, 1, 2);
+				nowMappingIndex = clamp(nowMappingIndex + 1, 1, 3);
 			}
 			else
 			{
-				nowMappingIndex = clamp(nowMappingIndex - 1, 1, 2);
+				nowMappingIndex = clamp(nowMappingIndex - 1, 1, 3);
 			}
 		}
 	}
@@ -374,6 +380,17 @@ void Map_Draw()
 		case 2:
 			Model_Static_Draw(CoinModelTexId,new GameObject(o.Position));
 			AABB_Draw_Debug(o.Collision);
+			break;
+		case 3:
+			Model_Static_Draw(MushroomTexId, new GameObject(o.Position));
+			for (size_t i = 0; i < MushroomTexId->colliders.size(); i++)
+			{
+				DrawTriMesh_Gizmo(
+					MushroomTexId->colliders[i],
+					o.Position,
+					{ 1,1,0,1 });
+			}
+			//AABB_Draw_Debug(o.Collision);
 			break;
 		default:
 			break;
@@ -405,6 +422,9 @@ void Map_Draw()
 		case 2:
 			Model_Static_Draw(CoinModelTexId, new GameObject(GetMouseToMapLocation()));
 			break;
+		case 3:
+			Model_Static_Draw(MushroomTexId, new GameObject(GetMouseToMapLocation()));
+			break;
 		default:
 			break;
 		}
@@ -424,6 +444,10 @@ void Map_Draw()
 				case 2:
 					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
 					g_MapObjects[i].IsTriggered = true;
+					break;
+				case 3:
+					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = false;
 					break;
 				default:
 					break;

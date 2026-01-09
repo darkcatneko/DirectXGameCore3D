@@ -8,7 +8,7 @@ static int g_BulletsCount{ 0 };
 static MODEL_STATIC* bullet_model;
 void Bullet3D_Initialize()
 {
-	bullet_model = Model_Static_Load("test.fbx", 0.01f, false);
+	bullet_model = Model_Static_Load("Amanita_big.fbx", 0.01f, false);
 }
 
 void Bullet3D_Finitialize()
