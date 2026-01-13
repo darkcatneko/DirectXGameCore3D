@@ -172,6 +172,7 @@
     <ClCompile Include="enemy_normal.cpp" />
     <ClCompile Include="Game3D.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameUI.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Light_Camera.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="enemy_normal.h" />
     <ClInclude Include="Game3D.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameUI.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Light_Camera.h" />

@@ -1,4 +1,4 @@
-#include "EnemyCloud.h"
+ï»¿#include "EnemyCloud.h"
 #include "collision.h"
 #include "Player3D.h"
 #include "Cube.h"
@@ -12,11 +12,16 @@ using namespace DirectX;
 
 void EnemyCloud::EnemyCloudStatePatrol::Update(double elapsed_time)
 {
+	//å·¦å³ã«å¾€å¾©ç§»å‹•
+	m_AccumulatedTime += elapsed_time;
+	m_pOwner->m_Position.x = m_PointX + sinf((float)m_AccumulatedTime);
+
+
 	if (IsTooFar(m_pOwner->m_Position, m_pOwner->spawn_Position, 5))
 	{
 		m_pOwner->ChangeState(new EnemyCloudStateBack(m_pOwner));
 	}
-	//ƒvƒŒƒCƒ„[‚ªõ“G”ÍˆÍ‚É“ü‚Á‚½‚çChaseƒXƒe[ƒg‚ÉˆÚs
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç´¢æ•µç¯„å›²ã«å…¥ã£ãŸã‚‰Chaseã‚¹ãƒ†ãƒ¼ãƒˆã«ç§»è¡Œ
 	if (Collision_IsOverlapSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, GetPlayerPosition()))
 	{
 		m_pOwner->ChangeState(new EnemyCloudStateChase(m_pOwner));
@@ -25,21 +30,35 @@ void EnemyCloud::EnemyCloudStatePatrol::Update(double elapsed_time)
 
 void EnemyCloud::EnemyCloudStatePatrol::Draw() const
 {
-	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,XMConvertToRadians(180),0 }));
+	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,m_pOwner->m_Rotation.y,0 }));
 	Grid_DebugDrawSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, { 1,0,0,1 });
 }
 
 void EnemyCloud::EnemyCloudStateChase::Update(double elapsed_time)
 {
-	//Ž©•ª‚©‚çƒvƒŒƒCƒ„[‚Ü‚Å‚ÌƒxƒNƒgƒ‹ŽZo
+	//å¦‚æžœè·é›¢ä¸å¤ ï¼Œè¿½ä¸Š
+	//è·é›¢å…§ï¼Œç™¼å°„å­å½ˆ
+	
+	//è‡ªåˆ†ã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¾ã§ã®ãƒ™ã‚¯ãƒˆãƒ«ç®—å‡º
 	XMVECTOR toPlayer = XMLoadFloat3(&GetPlayerPosition()) - XMLoadFloat3(&m_pOwner->m_Position);
+	XMFLOAT3 toPlayer_f; XMStoreFloat3(&toPlayer_f,toPlayer);
 	toPlayer = XMVector3Normalize(toPlayer);
-	toPlayer *= {1.0f, 0.0f, 1.0f};//YŽ²ˆÚ“®–³Œø‰»
+	toPlayer *= {1.0f, 0.0f, 1.0f};//Yè»¸ç§»å‹•ç„¡åŠ¹åŒ–
 
-	//ˆÚ“®
+	//ç§»å‹•
 	XMVECTOR position = XMLoadFloat3(&m_pOwner->m_Position) + toPlayer * 1.5f * elapsed_time;
+	//å‘ãèª¿æ•´
+	XMVECTOR vDir = XMVector3Normalize(toPlayer);
+	float angle = atan2f(toPlayer_f.x, toPlayer_f.z);
+
+	// æ¨¡åž‹ forward = 180Â°
+	angle += 2*XM_PI;
+
+	m_pOwner->m_Rotation.y = angle;
+
+
 	XMStoreFloat3(&m_pOwner->m_Position, position);
-	//’ú‚ß‚é
+	//è«¦ã‚ã‚‹
 	if (!Collision_IsOverlapSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, GetPlayerPosition()))
 	{
 		m_AccumulatedTime += elapsed_time;
@@ -56,7 +75,7 @@ void EnemyCloud::EnemyCloudStateChase::Update(double elapsed_time)
 
 void EnemyCloud::EnemyCloudStateChase::Draw() const
 {
-	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, {0,XMConvertToRadians(180),0}));
+	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, {0,m_pOwner->m_Rotation.y,0}));
 	Grid_DebugDrawSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, { 1,0,0,1 });
 }
 
@@ -88,13 +107,14 @@ void EnemyCloud::EnemyCloudStateBeHit::Update(double elapsed_time)
 	}
 	if (KeyLogger_IsTrigger(KK_C))
 	{
+		m_pOwner->IsCollider =true;
 		m_pOwner->ChangeState(new EnemyCloudStatePlate(m_pOwner));
 	}
 }
 
 void EnemyCloud::EnemyCloudStateBeHit::Draw() const
 {
-	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,XMConvertToRadians(180),0 }));
+	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,m_pOwner->m_Rotation.y,0 }));
 	Grid_DebugDrawSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, { 0,1,0,1 });
 }
 
@@ -105,42 +125,68 @@ void EnemyCloud::Update(double elapsed_time)
 	{
 		if (Collision_IsOverlapSphere({ this->m_Position,this->m_DetectionRadius }, Bullet3D_GetPos(i)))
 		{
-			this->ChangeState(new EnemyCloudStateBeHit(this));
-			StartPlayer_MonsterControl();
+			this->HurtEnemy(1);
+			Bullet3D_Destroy(i);
+			if (m_Hp<=0)
+			{
+				this->ChangeState(new EnemyCloudStateBeHit(this));
+				StartPlayer_MonsterControl();
+			}
 		}
 	}
 }
 
+void EnemyCloud::HurtEnemy(int amount)
+{
+	m_Hp -= amount;
+}
+
 void EnemyCloud::EnemyCloudStateBack::Update(double elapsed_time)
 {
-	//Ž©•ª‚©‚çƒvƒŒƒCƒ„[‚Ü‚Å‚ÌƒxƒNƒgƒ‹ŽZo
+	//è‡ªåˆ†ã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¾ã§ã®ãƒ™ã‚¯ãƒˆãƒ«ç®—å‡º
 	XMVECTOR toSpawn = XMLoadFloat3(&m_pOwner->spawn_Position) - XMLoadFloat3(&m_pOwner->m_Position);
+	XMFLOAT3 toSpawn_f; XMStoreFloat3(&toSpawn_f, toSpawn);
 	toSpawn = XMVector3Normalize(toSpawn);
-	toSpawn *= {1.0f, 0.0f, 1.0f};//YŽ²ˆÚ“®–³Œø‰»
+	//toSpawn *= {1.0f, 0.0f, 1.0f};//Yè»¸ç§»å‹•ç„¡åŠ¹åŒ–
 
-	//ˆÚ“®
+	//ç§»å‹•
 	XMVECTOR position = XMLoadFloat3(&m_pOwner->m_Position) + toSpawn * 3.5f * elapsed_time;
+	//å‘ãèª¿æ•´
+	XMVECTOR vDir = XMVector3Normalize(toSpawn);
+	float angle = atan2f(toSpawn_f.x, toSpawn_f.z);
+
+	// æ¨¡åž‹ forward = 180Â°
+	angle += 2 * XM_PI;
+
+	m_pOwner->m_Rotation.y = angle;
 	XMStoreFloat3(&m_pOwner->m_Position, position);
-	//“ž’B‚µ‚½‚çPatrolƒXƒe[ƒg‚ÉˆÚs
+	//åˆ°é”ã—ãŸã‚‰Patrolã‚¹ãƒ†ãƒ¼ãƒˆã«ç§»è¡Œ
 	if (!IsTooFar(m_pOwner->m_Position, m_pOwner->spawn_Position, 0.05f))
 	{
+		m_pOwner->m_Rotation.y = XM_PI;
 		m_pOwner->ChangeState(new EnemyCloudStatePatrol(m_pOwner));
 	}
 }
 
 void EnemyCloud::EnemyCloudStateBack::Draw() const
 {
-	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,XMConvertToRadians(180),0 }));
+	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,m_pOwner->m_Rotation.y,0 }));
 	Grid_DebugDrawSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, { 0,0,1,1 });
 }
 
 void EnemyCloud::EnemyCloudStatePlate::Update(double elapsed_time)
 {
+	m_AccumulatedTime += elapsed_time;
+	if (m_AccumulatedTime >= 5.0) {
+		m_AccumulatedTime = 0;
+		m_pOwner->IsCollider = false;
+		m_pOwner->ChangeState(new EnemyCloudStateBack(m_pOwner));
+	}
 	m_pOwner->Collision = ModelStatic_GetAABBInWorldSpace(m_pOwner->cloud_model, m_pOwner->m_Position);
 }
 
 void EnemyCloud::EnemyCloudStatePlate::Draw() const
 {
-	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,XMConvertToRadians(180),0 }));
+	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,m_pOwner->m_Rotation.y,0 }));
 	AABB_Draw_Debug({ m_pOwner->Collision });
 }

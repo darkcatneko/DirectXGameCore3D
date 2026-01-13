@@ -14,27 +14,32 @@
 #include "Model_Static.h"
 
 
+
 class EnemyCloud : public Enemy
 {
 
 private:
+	bool this_isDestroy = false;
 	DirectX::XMFLOAT3 m_Position{};
 	DirectX::XMFLOAT3 spawn_Position{};
+	DirectX::XMFLOAT3 m_Rotation{};
 	float m_DetectionRadius{ 2.5f };
-	int m_Hp{ 100 };
+	int m_Hp{ 3 };
 public:
 	MODEL_STATIC* cloud_model;
 	EnemyCloud(const DirectX::XMFLOAT3& position)
 		: m_Position(position), spawn_Position(position)
 	{
+		m_Rotation.y += DirectX::XM_PI;
 		cloud_model = Model_Static_Load("Cloud_01a.fbx", 1.0f, true);
 		Collision = ModelStatic_GetAABBInWorldSpace(cloud_model, m_Position);
 		ChangeState(new EnemyCloudStatePatrol(this));
 	}
 	bool IsDestroy() const override {
-		return m_Hp <= 0;
+		return this_isDestroy;
 	}
 	void Update(double elapsed_time) override;
+	void HurtEnemy(int amount) override;
 
 private:
 	class EnemyCloudStatePatrol : public State {

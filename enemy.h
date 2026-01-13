@@ -26,9 +26,11 @@ private:
 
 public:
 	AABB Collision{};
+	bool IsCollider = false;
 	virtual ~Enemy() = default;
 	virtual void Update(double elapsed_time);
 	virtual void Draw() const;
+	virtual void HurtEnemy(int amount);
 	void UpdateState();
 	virtual bool IsDestroy() const = 0;
 

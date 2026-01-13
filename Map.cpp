@@ -16,7 +16,7 @@
 #include "Grid.h"
 using namespace DirectX; 
 
-static const int MAP_OBJECT_KIND_COUNT = 4;
+static const int MAP_OBJECT_KIND_COUNT = 5;
 static constexpr int g_MapObjectCount = 1024;
 static int nowMappingIndex = 1;
 
@@ -25,6 +25,7 @@ static MapObject* chosingObj;
 static MODEL_STATIC* CoinModelTexId;
 static MODEL_STATIC* MushroomTexId;
 static MODEL_STATIC* Grass3X3TexId;
+static MODEL_STATIC* GateTexId;
 void Map_IsTriggerUpdate();
 void Map_MakingUpdate(double elapsed_time);
 int PickObjectIndex(float mouseX, float mouseY); 
@@ -78,6 +79,7 @@ void Map_Initialize()
 	CoinModelTexId = Model_Static_Load("coin.fbx", 0.005f, true);
 	MushroomTexId = Model_Static_Load("Amanita_big.fbx", 0.01f, false);
 	Grass3X3TexId = Model_Static_Load("GrassBlock_3x3_04a.fbx", 1.0f, true);
+	GateTexId = Model_Static_Load("Gate_01a.fbx", 1.0f, true);
 	for (MapObject& o : g_MapObjects) ///PLUS
 	{
 		if (o.KindId == -1)continue;
@@ -98,6 +100,10 @@ void Map_Initialize()
 		case 4:
 			o.Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, o.Position);
 			o.IsTriggered = false;
+			break;
+		case 5:
+			o.Collision = ModelStatic_GetAABBInWorldSpace(GateTexId, o.Position);
+			o.IsTriggered = true;
 			break;
 		default:
 			break;
@@ -351,11 +357,14 @@ void Map_IsTriggerUpdate()
 			{
 			case 2: // 撿到金幣
 				PlayerData_AddCoin(1);
+				g_MapObjects[i].KindId = -1;
 				break;
+			//case 5: // 到達終點
+				
 			default:
 				break;
 			}
-			g_MapObjects[i].KindId = -1;
+			
 		}
 	}
 }
@@ -402,6 +411,10 @@ void Map_MakingUpdate(double elapsed_time)
 					g_MapObjects[i].Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, g_MapObjects[i].Position);
 					g_MapObjects[i].IsTriggered = false;
 					break;
+				case 5:
+					g_MapObjects[i].Collision = ModelStatic_GetAABBInWorldSpace(GateTexId, g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = true;
+					break;
 				default:
 					break;
 				}
@@ -434,6 +447,10 @@ void Map_Draw()
 			}
 		case 4:
 			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position));
+			AABB_Draw_Debug(o.Collision);
+			break;
+		case 5:
+			Model_Static_Draw(GateTexId, new GameObject(o.Position, {0,XMConvertToRadians(-90),0}));
 			AABB_Draw_Debug(o.Collision);
 			break;
 		default:
@@ -471,6 +488,9 @@ void Map_Draw()
 			break;
 		case 4:
 			Model_Static_Draw(Grass3X3TexId, new GameObject(GetMouseToMapLocation()));
+			break;
+		case 5:
+			Model_Static_Draw(GateTexId, new GameObject(GetMouseToMapLocation()));
 			break;
 		default:
 			break;

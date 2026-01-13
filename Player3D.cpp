@@ -144,6 +144,7 @@ void Player3D_Movement(float elapsed_time)
 	}
 	for (int i = 0; i < Enemy_GetObjectsCount(); i++)
 	{
+		if (!Enemy_GetObjects(i)->IsCollider)continue;
 		AABB Object = Enemy_GetObjects(i)->Collision;
 
 		//被重力拖的物件有被撞到嗎
@@ -303,6 +304,7 @@ void Player3D_Movement(float elapsed_time)
 	}
 	for (int i = 0; i < Enemy_GetObjectsCount(); i++)
 	{
+		if (!Enemy_GetObjects(i)->IsCollider)continue;
 		AABB Object = Enemy_GetObjects(i)->Collision;
 
 		Hit hit = Collision_IsHitAABB(Object, player);

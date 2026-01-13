@@ -18,6 +18,10 @@ void Enemy::Draw() const{
 	m_pState->Draw();
 }
 
+void Enemy::HurtEnemy(int amount)
+{
+}
+
 void Enemy::UpdateState() {
 	if (m_pNextState != m_pState) {
 		delete m_pState;
