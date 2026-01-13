@@ -39,4 +39,5 @@ void Model_Static_Release(MODEL_STATIC* model);
 
 void Model_Static_Draw(MODEL_STATIC* model, GameObject* gameobject);
 void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld);
+AABB ModelStatic_GetAABBInWorldSpace(MODEL_STATIC* model, DirectX::XMFLOAT3 pos);
 #endif

@@ -75,7 +75,8 @@ void Scene3D_Initialize(HWND& hWnd)
 		Sky_Initialize();
 		Camera3D_Initialize({ 0.0f,5.0f,-10.0f }, { 0.0f,0.0f,1.0f }, { 1.0f,0.0f,0.0f });
 		Enemy_Initialize();
-		Enemy_Create({ 0.0f, 10.0f, 15.0f });
+		Enemy_Create({ 0.0f, 12.0f, 15.0f });
+		Enemy_Create({ 20.0f, 14.0f, 12.0f });
 		Player3D_Initialize({ 0,12,0 }, { 0,0,1 });
 		LightCamera_Initialize(GetPlayerFront(), {0,10,-5});
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);

@@ -168,6 +168,7 @@
     <ClCompile Include="Collision3D.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="EnemyCloud.cpp" />
     <ClCompile Include="enemy_normal.cpp" />
     <ClCompile Include="Game3D.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="enemy.h" />
+    <ClInclude Include="EnemyCloud.h" />
     <ClInclude Include="enemy_normal.h" />
     <ClInclude Include="Game3D.h" />
     <ClInclude Include="GameObject.h" />

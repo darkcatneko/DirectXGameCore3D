@@ -16,7 +16,8 @@
 #include<DirectXMath.h>
 using namespace DirectX;
 
-void EnemyNormal::EnemyNormalStatePatrol::Update(double elapsed_time){
+void EnemyNormal::EnemyNormalStatePatrol::Update(double elapsed_time)
+{
 	m_AccumulatedTime += elapsed_time;
 	m_pOwner->m_Position.x = sinf(m_AccumulatedTime);
 

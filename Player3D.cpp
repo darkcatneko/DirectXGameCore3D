@@ -11,6 +11,7 @@
 #include "Bullet3D.h"
 #include "AnimationSystem.h"
 #include "circle_shadow.h"
+#include "enemy.h"
 using namespace DirectX;
 constexpr float EPSILON = 0.0001f;
 namespace {
@@ -141,6 +142,23 @@ void Player3D_Movement(float elapsed_time)
 			}
 		}
 	}
+	for (int i = 0; i < Enemy_GetObjectsCount(); i++)
+	{
+		AABB Object = Enemy_GetObjects(i)->Collision;
+
+		//被重力拖的物件有被撞到嗎
+		Hit hit = Collision_IsHitAABB(Object, player);
+		if (hit.isHit)
+		{
+			if (hit.normal.y > 0.0f)
+			{
+				//player_pos -= gravity_velocity;
+				player_pos = XMVectorSetY(player_pos, Object.max.y);
+				player_velocity *= { 1.0f, 0.0f, 1.0f};
+				g_IsJump = false;
+			}
+		}
+	}
 
 	//有撞到地面嗎
 	if (DirectX::XMVectorGetY(player_pos) <= -0.5f)
@@ -246,7 +264,7 @@ void Player3D_Movement(float elapsed_time)
 	for (int i = 0; i < Map_GetObjectsCount(); i++)
 	{
 		if (Map_GetObjects(i)->IsTriggered)continue;
-		AABB Object = Cube_GetAABB(Map_GetObjects(i)->Position);
+		AABB Object = Map_GetObjects(i)->Collision;
 		Hit hit = Collision_IsHitAABB(Object, player);
 		//撞擊判定
 		if (hit.isHit)
@@ -282,6 +300,45 @@ void Player3D_Movement(float elapsed_time)
 		DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
 		DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
 
+	}
+	for (int i = 0; i < Enemy_GetObjectsCount(); i++)
+	{
+		AABB Object = Enemy_GetObjects(i)->Collision;
+
+		Hit hit = Collision_IsHitAABB(Object, player);
+		//撞擊判定
+		if (hit.isHit)
+		{
+			if (hit.normal.x > 0.0f)
+			{
+				//player_pos -= gravity_velocity;
+				player_pos = XMVectorSetX(player_pos, Object.max.x + 0.5f);
+				player_velocity *= { 0.0f, 1.0f, 1.0f};
+			}
+			else if (hit.normal.x < 0.0f)
+			{
+				player_pos = XMVectorSetX(player_pos, Object.min.x - 0.5f);
+				player_velocity *= { 0.0f, 1.0f, 1.0f};
+			}
+			else if (hit.normal.y < 0.0f)
+			{
+				player_pos = XMVectorSetY(player_pos, Object.min.y - 1.5f);
+				player_velocity *= { 1.0f, 0.0f, 1.0f};
+			}
+			else if (hit.normal.z > 0.0f)
+			{
+				player_pos = XMVectorSetZ(player_pos, Object.max.z + 0.5f);
+				player_velocity *= { 1.0f, 1.0f, 0.0f};
+			}
+			else if (hit.normal.z < 0.0f)
+			{
+				player_pos = XMVectorSetZ(player_pos, Object.min.z - 0.5f);
+				player_velocity *= { 1.0f, 1.0f, 0.0f};
+			}
+		}
+
+		DirectX::XMStoreFloat3(&g_PlayerPosition, player_pos);
+		DirectX::XMStoreFloat3(&g_PlayerVelocity, player_velocity);
 	}
 }
 void Player3D_Draw()

@@ -19,4 +19,8 @@ DirectX::XMFLOAT2 Normalize(const DirectX::XMFLOAT2& v);
 float DirectionToDegree(const DirectX::XMFLOAT2& dir);
 DirectX::XMFLOAT2 DirFromDeg(float deg);
 float DegToRad(float deg);
+bool IsTooFar(
+	const DirectX::XMFLOAT3& a,
+	const DirectX::XMFLOAT3& b,
+	float maxDistance);
 #endif

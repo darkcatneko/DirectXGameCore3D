@@ -369,6 +369,16 @@ void ModelUnlitDraw(MODEL_STATIC* model, const DirectX::XMMATRIX& mtxWorld)
 	}
 }
 
+AABB ModelStatic_GetAABBInWorldSpace(MODEL_STATIC* model, DirectX::XMFLOAT3 pos)
+{
+	AABB out = model->Local;
+
+	out.min.x += pos.x; out.min.y += pos.y; out.min.z += pos.z;
+	out.max.x += pos.x; out.max.y += pos.y; out.max.z += pos.z;
+
+	return out;
+}
+
 
 
 

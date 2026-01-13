@@ -8,6 +8,7 @@
 ==============================================================================*/
 #include "enemy.h"
 #include "enemy_normal.h"
+#include "EnemyCloud.h"
 
 void Enemy::Update(double elapsed_time){
 	m_pState->Update(elapsed_time);
@@ -70,8 +71,18 @@ void Enemy_Draw(){
 }
 
 void Enemy_Create(const DirectX::XMFLOAT3& position){
-	g_Enemys[g_EnemyCount] = new EnemyNormal(position);
+	g_Enemys[g_EnemyCount] = new EnemyCloud(position);
 	g_EnemyCount++;
+}
+
+int Enemy_GetObjectsCount()
+{
+	return g_EnemyCount;
+}
+
+Enemy* Enemy_GetObjects(int index)
+{
+	return g_Enemys[index];
 }
 
 

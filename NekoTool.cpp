@@ -44,3 +44,19 @@ float DegToRad(float deg)
 	return deg * (XM_PI / 180.0f);
 }
 
+bool IsTooFar(
+	const DirectX::XMFLOAT3& a,
+	const DirectX::XMFLOAT3& b,
+	float maxDistance)
+{
+	using namespace DirectX;
+
+	XMVECTOR va = XMLoadFloat3(&a);
+	XMVECTOR vb = XMLoadFloat3(&b);
+
+	XMVECTOR diff = va - vb;
+	float distSq = XMVectorGetX(XMVector3LengthSq(diff));
+
+	return distSq > maxDistance * maxDistance;
+}
+

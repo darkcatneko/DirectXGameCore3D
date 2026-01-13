@@ -72,7 +72,7 @@ float4 main(PS_IN pi) : SV_TARGET
     
     float lim = 1.0 - max(dot(normalW.xyz, toEye), 0.0f);
     lim = pow(lim, 7.5f);
-    lcolor += float3(lim, lim, lim);
+    //lcolor += float3(lim, lim, lim);
     
     //–Ê
     for (int i = 0; i < count; i++)

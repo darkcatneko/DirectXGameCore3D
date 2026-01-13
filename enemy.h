@@ -25,6 +25,7 @@ private:
 	State* m_pNextState{};
 
 public:
+	AABB Collision{};
 	virtual ~Enemy() = default;
 	virtual void Update(double elapsed_time);
 	virtual void Draw() const;
@@ -40,5 +41,7 @@ void Enemy_Finalize();
 void Enemy_Update(double elapsed_time);
 void Enemy_Draw();
 void Enemy_Create(const DirectX::XMFLOAT3& position);
+int Enemy_GetObjectsCount();
+Enemy* Enemy_GetObjects(int index);
 
 #endif //ENEMY_H

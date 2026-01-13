@@ -16,6 +16,7 @@
 #include "Grid.h"
 using namespace DirectX; 
 
+static const int MAP_OBJECT_KIND_COUNT = 4;
 static constexpr int g_MapObjectCount = 1024;
 static int nowMappingIndex = 1;
 
@@ -23,6 +24,7 @@ static MapObject* chosingObj;
 
 static MODEL_STATIC* CoinModelTexId;
 static MODEL_STATIC* MushroomTexId;
+static MODEL_STATIC* Grass3X3TexId;
 void Map_IsTriggerUpdate();
 void Map_MakingUpdate(double elapsed_time);
 int PickObjectIndex(float mouseX, float mouseY); 
@@ -71,10 +73,12 @@ bool isMovingObject = false;
 
 void Map_Initialize()
 {
+	LoadMap("TestMap.map");
 	mapIconTexId = Texture_Load(L"mapIcon.png");
-	CoinModelTexId = Model_Static_Load("Grass_01a.fbx", 20.0f, true);
+	CoinModelTexId = Model_Static_Load("coin.fbx", 0.005f, true);
 	MushroomTexId = Model_Static_Load("Amanita_big.fbx", 0.01f, false);
-	for (MapObject& o : g_MapObjects)
+	Grass3X3TexId = Model_Static_Load("GrassBlock_3x3_04a.fbx", 1.0f, true);
+	for (MapObject& o : g_MapObjects) ///PLUS
 	{
 		if (o.KindId == -1)continue;
 		switch (o.KindId)
@@ -84,11 +88,15 @@ void Map_Initialize()
 			o.IsTriggered = false;
 			break;
 		case 2:
-			o.Collision = Cube_GetAABB(o.Position);
+			o.Collision = ModelStatic_GetAABBInWorldSpace(CoinModelTexId,o.Position);
 			o.IsTriggered = true;
 			break;
 		case 3:
 			o.Collision = Cube_GetAABB(o.Position);
+			o.IsTriggered = false;
+			break;
+		case 4:
+			o.Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, o.Position);
 			o.IsTriggered = false;
 			break;
 		default:
@@ -359,11 +367,45 @@ void Map_MakingUpdate(double elapsed_time)
 		{
 			if (MouseLogger_IsScroll().value>0)
 			{
-				nowMappingIndex = clamp(nowMappingIndex + 1, 1, 3);
+				nowMappingIndex = clamp(nowMappingIndex + 1, 1, MAP_OBJECT_KIND_COUNT);
 			}
 			else
 			{
-				nowMappingIndex = clamp(nowMappingIndex - 1, 1, 3);
+				nowMappingIndex = clamp(nowMappingIndex - 1, 1, MAP_OBJECT_KIND_COUNT);
+			}
+		}
+	}
+	if (isMapping)
+	{
+		if (MouseLogger_IsTrigger(0))///PLUS
+		{
+			for (int i = 0; i < g_MapObjectCount; i++)
+			{
+				if (g_MapObjects[i].KindId != -1)continue;
+				g_MapObjects[i].KindId = nowMappingIndex;
+				g_MapObjects[i].Position = GetMouseToMapLocation();
+				switch (g_MapObjects[i].KindId)
+				{
+				case 1:
+					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = false;
+					break;
+				case 2:
+					g_MapObjects[i].Collision = ModelStatic_GetAABBInWorldSpace(CoinModelTexId, g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = true;
+					break;
+				case 3:
+					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = false;
+					break;
+				case 4:
+					g_MapObjects[i].Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, g_MapObjects[i].Position);
+					g_MapObjects[i].IsTriggered = false;
+					break;
+				default:
+					break;
+				}
+				return;
 			}
 		}
 	}
@@ -390,7 +432,9 @@ void Map_Draw()
 					o.Position,
 					{ 1,1,0,1 });
 			}
-			//AABB_Draw_Debug(o.Collision);
+		case 4:
+			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position));
+			AABB_Draw_Debug(o.Collision);
 			break;
 		default:
 			break;
@@ -412,8 +456,8 @@ void Map_Draw()
 	}
 	if (isMapping)
 	{
-		Sprite_Draw(mapIconTexId, 200, 50, 50, 50, 1.0f, {1,1,1,1});
-		
+		Sprite_Draw(mapIconTexId, 200, 50, 50, 50, 1.0f, { 1,1,1,1 });
+
 		switch (nowMappingIndex)
 		{
 		case 1:
@@ -425,36 +469,12 @@ void Map_Draw()
 		case 3:
 			Model_Static_Draw(MushroomTexId, new GameObject(GetMouseToMapLocation()));
 			break;
+		case 4:
+			Model_Static_Draw(Grass3X3TexId, new GameObject(GetMouseToMapLocation()));
+			break;
 		default:
 			break;
-		}
-		if (MouseLogger_IsTrigger(0))
-		{
-			for (int i = 0; i < g_MapObjectCount; i++)
-			{
-				if (g_MapObjects[i].KindId != -1)continue;
-				g_MapObjects[i].KindId = nowMappingIndex;
-				g_MapObjects[i].Position = GetMouseToMapLocation();
-				switch (g_MapObjects[i].KindId)
-				{
-				case 1:
-					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
-					g_MapObjects[i].IsTriggered = false;
-					break;
-				case 2:
-					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
-					g_MapObjects[i].IsTriggered = true;
-					break;
-				case 3:
-					g_MapObjects[i].Collision = Cube_GetAABB(g_MapObjects[i].Position);
-					g_MapObjects[i].IsTriggered = false;
-					break;
-				default:
-					break;
-				}
-				return;
-			}
-		}
+		}		
 	}
 #if defined(DEBUG)||defined(_DEBUG)
 	hal::DebugText dt(Direct3D_GetDevice(), Direct3D_GetContext(),
