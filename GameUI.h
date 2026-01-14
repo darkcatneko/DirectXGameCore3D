@@ -9,4 +9,5 @@ void GameUI_Initialize();
 void GameUI_Finitialize();
 void GameUI_Update(double elapsed_time);
 void GameUI_Draw();
+void Game_Clear();
 #endif // !

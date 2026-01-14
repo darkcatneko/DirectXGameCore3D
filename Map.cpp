@@ -14,6 +14,7 @@
 #include "debug_text.h"
 #include "NekoTool.h"
 #include "Grid.h"
+#include "GameUI.h"
 using namespace DirectX; 
 
 static const int MAP_OBJECT_KIND_COUNT = 5;
@@ -257,7 +258,14 @@ void Map_Update(double elapsed_time)
 						planeZ
 					};
 					chosingObj->Position.x = prevObjPos.x + thisPos.x - prevMousePos.x;
-					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					if (chosingObj->KindId == 4)
+					{
+						chosingObj->Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, chosingObj->Position);
+					}
+					else
+					{
+						chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					}
 				}
 			}
 			else if(isPlacingOnY)
@@ -279,7 +287,14 @@ void Map_Update(double elapsed_time)
 						planeZ
 					};
 					chosingObj->Position.y = prevObjPos.y + thisPos.y - prevMousePos.y;
-					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					if (chosingObj->KindId == 4)
+					{
+						chosingObj->Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, chosingObj->Position);
+					}
+					else
+					{
+						chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					}
 				}
 			}
 			else if (isPlacingOnZ)
@@ -301,7 +316,14 @@ void Map_Update(double elapsed_time)
 						ray.origin.z + ray.dir.z * t
 					};
 					chosingObj->Position.z = prevObjPos.z + thisPos.z - prevMousePos.z;
-					chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					if (chosingObj->KindId == 4)
+					{
+						chosingObj->Collision = ModelStatic_GetAABBInWorldSpace(Grass3X3TexId, chosingObj->Position);
+					}
+					else
+					{
+						chosingObj->Collision = Cube_GetAABB(chosingObj->Position);
+					}
 				}
 			}
 			
@@ -359,8 +381,9 @@ void Map_IsTriggerUpdate()
 				PlayerData_AddCoin(1);
 				g_MapObjects[i].KindId = -1;
 				break;
-			//case 5: // 到達終點
-				
+			case 5: // 到達終點
+				Game_Clear();
+					break;
 			default:
 				break;
 			}

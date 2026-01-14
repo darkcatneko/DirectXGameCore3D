@@ -30,6 +30,7 @@
 #include "ShaderField.h"
 #include "circle_shadow.h"
 #include "NekoTool.h"
+#include "GameUI.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -79,6 +80,7 @@ void Scene3D_Initialize(HWND& hWnd)
 		Enemy_Create({ 20.0f, 14.0f, 12.0f });
 		Player3D_Initialize({ 0,12,0 }, { 0,0,1 });
 		LightCamera_Initialize(GetPlayerFront(), {0,10,-5});
+		GameUI_Initialize();
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
 		texid = Texture_Load(L"Grass.png");
 		CircleShadow_Initialize();
@@ -125,6 +127,7 @@ void Scene3D_Update(double time)
 			}
 		}
 	}
+	GameUI_Update(time);
 }
 
 
@@ -181,6 +184,7 @@ void Scene3D_Draw()
 	Map_Draw();
 	Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
+	GameUI_Draw();
 	CircleShadow_Draw(GetPlayerPosition());
 	//Sprite_Begin();
 	Direct3D_SetOffScreenTexture(0);

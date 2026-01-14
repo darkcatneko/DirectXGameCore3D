@@ -14,6 +14,7 @@ AABB GetPlayer_AABB();
 AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position);
 
 void StartPlayer_MonsterControl();
+void ResetPlayerPosition();
 
 class StateMachine
 {

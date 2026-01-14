@@ -16,6 +16,7 @@ using namespace DirectX;
 constexpr float EPSILON = 0.0001f;
 namespace {
 	DirectX::XMFLOAT3 g_PlayerRespawn = { 0.0f,1.0f,0.0f };
+	bool g_PlayerRespawnTrigger = false;
 
 	DirectX::XMFLOAT3 g_PlayerPosition = {};
 	DirectX::XMFLOAT3 g_PlayerFront = { 0.0f,0.0f,1.0f };
@@ -162,12 +163,13 @@ void Player3D_Movement(float elapsed_time)
 	}
 
 	//有撞到地面嗎
-	if (DirectX::XMVectorGetY(player_pos) <= -0.5f)
+	if (DirectX::XMVectorGetY(player_pos) <= -0.5f|| g_PlayerRespawnTrigger)
 	{
 		//player_pos = XMVectorSetY(player_pos, -0.5f);
 		player_pos =  XMLoadFloat3(&g_PlayerRespawn);
 		player_velocity *= { 1.0f, 0.0f, 1.0f};
 		g_IsJump = false;
+		g_PlayerRespawnTrigger = false;
 	}
 
 
@@ -385,6 +387,10 @@ AABB Player_ConvertPositionToAABB(const DirectX::XMVECTOR position)
 void StartPlayer_MonsterControl()
 {
 	ControllingTrigger = true;
+}
+void ResetPlayerPosition()
+{
+	g_PlayerRespawnTrigger = true;
 }
 //////////////////////////////////
 
@@ -659,3 +665,4 @@ void PlayerStateMachine::PlayerControllingState::InState()
 void PlayerStateMachine::PlayerControllingState::OutState()
 {
 }
+
