@@ -12,6 +12,7 @@
 #include "enemy.h"
 #include <DirectXMath.h>
 #include "Model_Static.h"
+#include "Collision3D.h"
 
 
 
@@ -25,11 +26,17 @@ private:
 	DirectX::XMFLOAT3 m_Rotation{};
 	float m_DetectionRadius{ 2.5f };
 	int m_Hp{ 3 };
+	Sector m_DetectionSector{};
+
 public:
 	MODEL_STATIC* cloud_model;
 	EnemyCloud(const DirectX::XMFLOAT3& position)
 		: m_Position(position), spawn_Position(position)
 	{
+		m_DetectionSector.origin = m_Position;
+		m_DetectionSector.forward = { 0,0,-1 };
+		m_DetectionSector.radius = 5.0f;
+		m_DetectionSector.fovDeg = 90.0f;
 		m_Rotation.y += DirectX::XM_PI;
 		cloud_model = Model_Static_Load("Cloud_01a.fbx", 1.0f, true);
 		Collision = ModelStatic_GetAABBInWorldSpace(cloud_model, m_Position);

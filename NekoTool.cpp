@@ -59,4 +59,21 @@ bool IsTooFar(
 
 	return distSq > maxDistance * maxDistance;
 }
+DirectX::XMFLOAT3 RotateY(const DirectX::XMFLOAT3& v, float rad)
+{
+	XMVECTOR x = XMLoadFloat3(&v);
+	XMMATRIX R = XMMatrixRotationY(rad);
+	x = XMVector3TransformNormal(x, R);
+	XMFLOAT3 out; XMStoreFloat3(&out, x);
+	return out;
+}
+
+DirectX::XMFLOAT3 NormalizeXZ(DirectX::XMFLOAT3 v)
+{
+	XMVECTOR x = XMLoadFloat3(&v);
+	x = XMVectorSetY(x, 0.0f);
+	x = XMVector3Normalize(x);
+	XMFLOAT3 out; XMStoreFloat3(&out, x);
+	return out;
+}
 

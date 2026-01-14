@@ -1,4 +1,4 @@
-#ifndef GRID_H
+﻿#ifndef GRID_H
 #define GRID_H
 #include "d3d11.h"
 #include "DirectXMath.h"
@@ -34,5 +34,12 @@ void Debug_DrawLine(
 	const DirectX::XMFLOAT3& end,
 	DirectX::XMFLOAT4 color
 );
+void DebugDrawSector(const Sector& sector, const DirectX::XMFLOAT4& color, int arcSegments = 24);
+
+void DrawRotatingGizmo_TranslateRotateStyle(
+	const DirectX::XMFLOAT3& objectPos,
+	const  DirectX::XMFLOAT3& objectForward, // 物件朝向（若你要以物件 local 軸當環的方向）
+	float timeSeconds,
+	float screenRadiusPx = 80.0f);
 #endif // !GRID_H
 

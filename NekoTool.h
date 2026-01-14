@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include "DirectXMath.h"
+#include "Collision3D.h"
 template <typename T>
 T clamp(T value, T min, T max) {
 	if (value < min) return min;
@@ -23,4 +24,6 @@ bool IsTooFar(
 	const DirectX::XMFLOAT3& a,
 	const DirectX::XMFLOAT3& b,
 	float maxDistance);
+DirectX::XMFLOAT3 RotateY(const DirectX::XMFLOAT3& v, float rad);
+DirectX::XMFLOAT3 NormalizeXZ(DirectX::XMFLOAT3 v);
 #endif

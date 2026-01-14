@@ -26,12 +26,17 @@ void EnemyCloud::EnemyCloudStatePatrol::Update(double elapsed_time)
 	{
 		m_pOwner->ChangeState(new EnemyCloudStateChase(m_pOwner));
 	}
+	if (IsPointInSector(m_pOwner->m_DetectionSector, GetPlayerPosition()))
+	{
+		m_pOwner->ChangeState(new EnemyCloudStateChase(m_pOwner));
+	}
 }
 
 void EnemyCloud::EnemyCloudStatePatrol::Draw() const
 {
 	Model_Static_Draw(m_pOwner->cloud_model, new GameObject(m_pOwner->m_Position, { 0,m_pOwner->m_Rotation.y,0 }));
 	Grid_DebugDrawSphere({ m_pOwner->m_Position,m_pOwner->m_DetectionRadius }, { 1,0,0,1 });
+	DebugDrawSector(m_pOwner->m_DetectionSector, { 1,0,0,1 });
 }
 
 void EnemyCloud::EnemyCloudStateChase::Update(double elapsed_time)
@@ -121,6 +126,7 @@ void EnemyCloud::EnemyCloudStateBeHit::Draw() const
 void EnemyCloud::Update(double elapsed_time)
 {
 	Enemy::Update(elapsed_time);
+	m_DetectionSector.origin = m_Position;
 	for (int i = 0; i < Bullet3D_GetObjectsCount(); i++)
 	{
 		if (Collision_IsOverlapSphere({ this->m_Position,this->m_DetectionRadius }, Bullet3D_GetPos(i)))

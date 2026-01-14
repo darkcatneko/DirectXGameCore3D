@@ -8,6 +8,7 @@ struct MapObject
 {
 	int KindId = -1;
 	DirectX::XMFLOAT3 Position;
+	DirectX::XMFLOAT3 Rotation = {0,0,0};
 	AABB Collision;
 	bool IsTriggered = false;
 };
@@ -16,6 +17,7 @@ void Map_Initialize();
 void Map_Finitialize();
 void Map_Update(double elapsed_time);
 void Map_Draw();
+void Map_DrawRotatingGizmos();
 int Map_GetObjectsCount();
 const MapObject* Map_GetObjects(int index);
 void SaveMap(const char* filename);

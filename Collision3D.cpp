@@ -152,3 +152,4 @@ void Debug_DrawRay(const Ray& ray)
 	Cube_Draw(end);
 	Grid_DebugDrawRay(start, ray.dir, 10000.0f); // 紅色
 }
+

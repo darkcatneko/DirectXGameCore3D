@@ -47,26 +47,26 @@ bool isPlacingOnZ = false;
 
 static MapObject g_MapObjects[g_MapObjectCount]
 {
-	{1,{ 0.0f,10.0f, 0.0f}},
-	{1,{ 1.0f,10.0f, 0.0f}},
-	{1,{-1.0f,10.0f, 0.0f}},
-	{1,{ 0.0f,10.0f, 1.0f}},
-	{1,{ 1.0f,10.0f, 1.0f}},
-	{1,{-1.0f,10.0f, 1.0f}},
-	{1,{ 0.0f,10.0f, 2.0f}},
-	{1,{ 1.0f,10.0f, 2.0f}},
-	{1,{-1.0f,10.0f, 2.0f}},
-	{1,{ 0.0f+5.0f,5.0f, 0.0f}},
-	{1,{ 1.0f+5.0f,5.0f, 0.0f}},
-	{1,{-1.0f+5.0f,5.0f, 0.0f}},
-	{1,{ 0.0f+5.0f,5.0f, 1.0f}},
-	{1,{ 1.0f+5.0f,5.0f, 1.0f}},
-	{1,{-1.0f+5.0f,5.0f, 1.0f}},
-	{1,{ 0.0f+5.0f,5.0f, 2.0f}},
-	{1,{ 1.0f+5.0f,5.0f, 2.0f}},
-	{1,{-1.0f+5.0f,5.0f, 2.0f}},
-	{2,{-1.0f,11.5f, 2.0f}},
-	{2,{-2.0f,12.5f,-1.0f}},
+	{1,{ 0.0f,10.0f, 0.0f},{0,0,0}},
+	{1,{ 1.0f,10.0f, 0.0f},{0,0,0}},
+	{1,{-1.0f,10.0f, 0.0f},{0,0,0}},
+	{1,{ 0.0f,10.0f, 1.0f},{0,0,0}},
+	{1,{ 1.0f,10.0f, 1.0f},{0,0,0}},
+	{1,{-1.0f,10.0f, 1.0f},{0,0,0}},
+	{1,{ 0.0f,10.0f, 2.0f},{0,0,0}},
+	{1,{ 1.0f,10.0f, 2.0f},{0,0,0}},
+	{1,{-1.0f,10.0f, 2.0f},{0,0,0}},
+	{1,{ 0.0f+5.0f,5.0f, 0.0f},{0,0,0}},
+	{1,{ 1.0f+5.0f,5.0f, 0.0f},{0,0,0}},
+	{1,{-1.0f+5.0f,5.0f, 0.0f},{0,0,0}},
+	{1,{ 0.0f+5.0f,5.0f, 1.0f},{0,0,0}},
+	{1,{ 1.0f+5.0f,5.0f, 1.0f},{0,0,0}},
+	{1,{-1.0f+5.0f,5.0f, 1.0f},{0,0,0}},
+	{1,{ 0.0f+5.0f,5.0f, 2.0f},{0,0,0}},
+	{1,{ 1.0f+5.0f,5.0f, 2.0f},{0,0,0}},
+	{1,{-1.0f+5.0f,5.0f, 2.0f},{0,0,0}},
+	{2,{-1.0f,11.5f, 2.0f},{0,0,0}},
+	{2,{-2.0f,12.5f,-1.0f},{0,0,0}},
 };
 
 static int mapIconTexId = 0;
@@ -75,7 +75,7 @@ bool isMovingObject = false;
 
 void Map_Initialize()
 {
-	LoadMap("TestMap.map");
+	//LoadMap("TestMap.map");
 	mapIconTexId = Texture_Load(L"mapIcon.png");
 	CoinModelTexId = Model_Static_Load("coin.fbx", 0.005f, true);
 	MushroomTexId = Model_Static_Load("Amanita_big.fbx", 0.01f, false);
@@ -453,14 +453,14 @@ void Map_Draw()
 		switch (o.KindId)
 		{
 		case 1:
-			Cube_Draw(o.Position);
+			Cube_Draw(o.Position, o.Rotation, {1,1,1});
 			break;
 		case 2:
-			Model_Static_Draw(CoinModelTexId,new GameObject(o.Position));
+			Model_Static_Draw(CoinModelTexId,new GameObject(o.Position,o.Rotation));
 			AABB_Draw_Debug(o.Collision);
 			break;
 		case 3:
-			Model_Static_Draw(MushroomTexId, new GameObject(o.Position));
+			Model_Static_Draw(MushroomTexId, new GameObject(o.Position, o.Rotation));
 			for (size_t i = 0; i < MushroomTexId->colliders.size(); i++)
 			{
 				DrawTriMesh_Gizmo(
@@ -469,8 +469,9 @@ void Map_Draw()
 					{ 1,1,0,1 });
 			}
 		case 4:
-			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position));
+			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position, o.Rotation));
 			AABB_Draw_Debug(o.Collision);
+			DrawRotatingGizmo_TranslateRotateStyle(o.Position, { 0,0,1 }, 0);
 			break;
 		case 5:
 			Model_Static_Draw(GateTexId, new GameObject(o.Position, {0,XMConvertToRadians(-90),0}));
@@ -534,6 +535,21 @@ void Map_Draw()
 	dt.Draw();
 	dt.Clear();
 #endif 
+}
+
+void Map_DrawRotatingGizmos()
+{
+	for (const MapObject& o : g_MapObjects)
+	{
+		switch (o.KindId)
+		{		
+		case 4:
+			DrawRotatingGizmo_TranslateRotateStyle(o.Position, { 0,0,1 }, 0);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 int Map_GetObjectsCount()
