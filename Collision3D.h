@@ -56,4 +56,14 @@ Ray MakeMouseRay(float mouseX, float mouseY);
 bool RayVsAABB(const Ray& ray, const AABB& box, float& tHit);
 void Debug_DrawRay(const Ray& ray);
 bool IsPointInSector(const Sector& s, const DirectX::XMFLOAT3& point);
+float ComputeGizmoRadiusWorld(float dist, float fovYRad, int viewportH, float radiusPx);
+bool RayVsRing_Plane(
+	const Ray& ray,
+	const DirectX::XMFLOAT3& center,
+	const DirectX::XMFLOAT3& normal,
+	float R,
+	float halfWidth,
+	float& outTHit,
+	DirectX::XMFLOAT3* outHitPoint = nullptr,
+	float epsParallel = 1e-6f);
 #endif

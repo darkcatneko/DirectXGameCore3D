@@ -15,6 +15,7 @@
 #include "NekoTool.h"
 #include "Grid.h"
 #include "GameUI.h"
+#include "Camera3D.h"
 using namespace DirectX; 
 
 static const int MAP_OBJECT_KIND_COUNT = 5;
@@ -45,6 +46,8 @@ bool isPlacingOnX = false;
 bool isPlacingOnY = false;
 bool isPlacingOnZ = false;
 
+bool isPlacingOnGridX = false;
+
 static MapObject g_MapObjects[g_MapObjectCount]
 {
 	{1,{ 0.0f,10.0f, 0.0f},{0,0,0}},
@@ -72,6 +75,10 @@ static MapObject g_MapObjects[g_MapObjectCount]
 static int mapIconTexId = 0;
 bool isMapping = false;
 bool isMovingObject = false;
+
+static inline XMVECTOR Load3(const XMFLOAT3& v) { return XMLoadFloat3(&v); }
+static inline XMFLOAT3 Store3(FXMVECTOR v) { XMFLOAT3 o; XMStoreFloat3(&o, v); return o; }
+static inline float Length3(XMVECTOR v) { return XMVectorGetX(XMVector3Length(v)); }
 
 void Map_Initialize()
 {
@@ -237,6 +244,24 @@ void Map_Update(double elapsed_time)
 				isPlacingOnZ = true;
 			}
 		}
+
+		if (chosingObj!=nullptr)
+		{
+			XMVECTOR camPos = Load3(Camera_GetCameraPos());
+			XMVECTOR objPos = Load3(chosingObj->Position);
+
+			float dist = Length3(objPos - camPos);
+			dist = (dist < 0.01f) ? 0.01f : dist;
+			float t; XMFLOAT3 hp;
+			float radiusWorld = ComputeGizmoRadiusWorld(dist, Camera_GetFov(), Direct3D_GetBackBufferHeight(), 0);
+			if (RayVsRing_Plane(ray, chosingObj->Position, {1,0,0}, radiusWorld, 0.05f, t, &hp))
+			{
+				isPlacingOnGridX = true;
+			}
+		}
+
+
+
 		if (MouseLogger_IsDown(1))
 		{
 			if (isPlacingOnX)
@@ -470,8 +495,7 @@ void Map_Draw()
 			}
 		case 4:
 			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position, o.Rotation));
-			AABB_Draw_Debug(o.Collision);
-			DrawRotatingGizmo_TranslateRotateStyle(o.Position, { 0,0,1 }, 0);
+			AABB_Draw_Debug(o.Collision);			
 			break;
 		case 5:
 			Model_Static_Draw(GateTexId, new GameObject(o.Position, {0,XMConvertToRadians(-90),0}));
@@ -483,14 +507,13 @@ void Map_Draw()
 	}
 	if (chosingObj!=nullptr)
 	{
-
 		AABB_Draw_Debug_Size(chosingObj->Collision,0.1f);
 	}
 	if (chosingObj != nullptr)
 	{
 		Grid_DebugDrawRay({ x_aabb.min.x,x_point.y   ,x_point.z }, { 1,0,0 }, 2.0f);
 		Grid_DebugDrawRay({ y_point.x   ,x_aabb.min.y,y_point.z }, { 0,1,0 }, 2.0f, { 0,1,0,1 });
-		Grid_DebugDrawRay({ z_point.x   ,z_point.y   ,z_aabb.min.z }, { 0,0,1 }, 2.0f, { 0,0,1,1 });
+		Grid_DebugDrawRay({ z_point.x   ,z_point.y   ,z_aabb.min.z }, { 0,0,1 }, 2.0f, { 0,0,1,1 });	
 //		AABB_Draw_Debug(x_aabb);
 //		AABB_Draw_Debug(y_aabb);
 //		AABB_Draw_Debug(z_aabb);
@@ -530,7 +553,11 @@ void Map_Draw()
 	std::stringstream ss;
 	ss <<"COIN: "<< PlayerData_GetCoin();
 	dt.SetText(ss.str().c_str());
-	//dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
+	if (isPlacingOnGridX)
+	{
+		dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
+
+	}
 
 	dt.Draw();
 	dt.Clear();

@@ -138,7 +138,48 @@ bool RayVsAABB(const Ray& ray, const AABB& box, float& tHit)
 	return true;
 }
 
+static inline XMVECTOR Load3(const XMFLOAT3& v) { return XMLoadFloat3(&v); }
+static inline XMFLOAT3 Store3(FXMVECTOR v) { XMFLOAT3 o; XMStoreFloat3(&o, v); return o; }
 
+bool RayVsRing_Plane(
+	const Ray& ray,
+	const XMFLOAT3& center,
+	const XMFLOAT3& normal,
+	float R,
+	float halfWidth,
+	float& outTHit,
+	XMFLOAT3* outHitPoint,
+	float epsParallel)
+{
+	XMVECTOR ray_ori = Load3(ray.origin);
+	XMVECTOR ray_dir = XMVector3Normalize(Load3(ray.dir));     // 保險起見 normalize
+	XMVECTOR center_v = Load3(center);
+	XMVECTOR normal_v = XMVector3Normalize(Load3(normal));           // ring 平面法線
+
+	// Ray-plane intersection:
+	// t = dot(C - ro, n) / dot(rd, n)
+	float denom = XMVectorGetX(XMVector3Dot(ray_dir, normal_v));
+	if (fabsf(denom) < epsParallel)
+		return false; // 幾乎平行 ring 平面，視為點不到（或你可改用方案C）
+
+	float depth = XMVectorGetX(XMVector3Dot(center_v - ray_ori, normal_v)) / denom;
+	if (depth < 0.0f)
+		return false; // 在相機後面
+
+	XMVECTOR point = ray_ori + ray_dir * depth; // 平面交點
+	XMVECTOR distant = point - center_v;
+
+	// 距離圓心的半徑
+	float dist_f = XMVectorGetX(XMVector3Length(distant));
+
+	// ring band test: |dist - R| <= halfWidth
+	if (fabsf(dist_f - R) > halfWidth)
+		return false;
+
+	outTHit = depth;
+	if (outHitPoint) *outHitPoint = Store3(point);
+	return true;
+}
 
 void Debug_DrawRay(const Ray& ray)
 {

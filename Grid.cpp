@@ -410,7 +410,7 @@ bool IsPointInSector(const Sector& s, const XMFLOAT3& point)
 	return dot >= cosHalf;
 }
 
-static float ComputeGizmoRadiusWorld(float dist, float fovYRad, int viewportH, float radiusPx)
+float ComputeGizmoRadiusWorld(float dist, float fovYRad, int viewportH, float radiusPx)
 {
 	// worldHeight = 2 * dist * tan(fovY/2)
 	float worldHeight = 2.0f * dist * tanf(fovYRad * 0.5f);

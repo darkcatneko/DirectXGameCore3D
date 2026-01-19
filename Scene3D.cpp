@@ -190,6 +190,7 @@ void Scene3D_Draw()
 	Direct3D_SetOffScreenTexture(0);
 	Direct3D_SetDepthEnable(false);
 	Sprite_Draw_N(0, 0, 128.0f, 128.0f, 1.0f);
+	Map_DrawRotatingGizmos();
 }
 
 void Scene3D_Refresh(HWND& hWnd)
