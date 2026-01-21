@@ -140,22 +140,26 @@ void HAL_Camera_Movement_Update(float time)
 		right = XMVector3TransformNormal(right, rotation);
 		up = XMVector3Cross(front, right);
 	}
-	if (KeyLogger_IsPressed(KK_W))
+	if (KeyLogger_IsPressed(KK_LEFTSHIFT))
 	{
-		pos += up * CAMERA_MOVE_SPEED * time;
+		if (KeyLogger_IsPressed(KK_W))
+		{
+			pos += up * CAMERA_MOVE_SPEED * time;
+		}
+		if (KeyLogger_IsPressed(KK_A))
+		{
+			pos += -right * CAMERA_MOVE_SPEED * time;
+		}
+		if (KeyLogger_IsPressed(KK_S))
+		{
+			pos += -up * CAMERA_MOVE_SPEED * time;
+		}
+		if (KeyLogger_IsPressed(KK_D))
+		{
+			pos += right * CAMERA_MOVE_SPEED * time;
+		}
 	}
-	if (KeyLogger_IsPressed(KK_A))
-	{
-		pos += -right * CAMERA_MOVE_SPEED * time;
-	}
-	if (KeyLogger_IsPressed(KK_S))
-	{
-		pos += -up * CAMERA_MOVE_SPEED * time;
-	}
-	if (KeyLogger_IsPressed(KK_D))
-	{
-		pos += right * CAMERA_MOVE_SPEED * time;
-	}
+	
 	if (MouseLogger_IsScroll().trigger)
 	{
 		pos += MouseLogger_IsScroll().value / 40.0f * front * CAMERA_MOVE_SPEED * time;

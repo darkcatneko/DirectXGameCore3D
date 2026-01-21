@@ -42,11 +42,15 @@ AABB z_aabb;
 XMFLOAT3 prevMousePos;
 XMFLOAT3 prevObjPos;
 
+
 bool isPlacingOnX = false;
 bool isPlacingOnY = false;
 bool isPlacingOnZ = false;
-
+enum class RotPlane { None, X, Y, Z };
+RotPlane rotPlane = RotPlane::None;
 bool isPlacingOnGridX = false;
+bool isPlacingOnGridY = false;
+bool isPlacingOnGridZ = false;
 
 static MapObject g_MapObjects[g_MapObjectCount]
 {
@@ -75,6 +79,7 @@ static MapObject g_MapObjects[g_MapObjectCount]
 static int mapIconTexId = 0;
 bool isMapping = false;
 bool isMovingObject = false;
+bool isRotatingObject = false;
 
 static inline XMVECTOR Load3(const XMFLOAT3& v) { return XMLoadFloat3(&v); }
 static inline XMFLOAT3 Store3(FXMVECTOR v) { XMFLOAT3 o; XMStoreFloat3(&o, v); return o; }
@@ -134,14 +139,22 @@ void Map_Update(double elapsed_time)
 			chosingObj = nullptr;
 		}
 		isMapping = !isMapping;
+		isRotatingObject = false;
 	}
-	if (KeyLogger_IsTrigger(KK_N))
+	if (KeyLogger_IsTrigger(KK_W))
 	{
 		if (isMapping)
 		{
 			isMapping = false;
 		}
+		isRotatingObject = false;
 		isMovingObject = !isMovingObject;
+	}
+	if (KeyLogger_IsTrigger(KK_E))
+	{
+		isMapping = false;
+		isMovingObject = false;
+		isRotatingObject = !isRotatingObject;
 	}
 	if (KeyLogger_IsTrigger(KK_R))
 	{
@@ -153,6 +166,7 @@ void Map_Update(double elapsed_time)
 	}
 	Map_IsTriggerUpdate();
 	Map_MakingUpdate(elapsed_time);
+	Ray ray = MakeMouseRay(Get_Mouse_Info().x, Get_Mouse_Info().y);
 	if (!isMapping && isMovingObject)
 	{
 		if (MouseLogger_IsTrigger(0))
@@ -164,10 +178,9 @@ void Map_Update(double elapsed_time)
 			}
 			else
 			{
-			chosingObj = &g_MapObjects[i];
-			}			
+				chosingObj = &g_MapObjects[i];
+			}
 		}
-		Ray ray = MakeMouseRay(Get_Mouse_Info().x, Get_Mouse_Info().y);
 		float t = 0.0f;
 		if (RayVsAABB(ray, x_aabb, t))
 		{
@@ -245,20 +258,7 @@ void Map_Update(double elapsed_time)
 			}
 		}
 
-		if (chosingObj!=nullptr)
-		{
-			XMVECTOR camPos = Load3(Camera_GetCameraPos());
-			XMVECTOR objPos = Load3(chosingObj->Position);
 
-			float dist = Length3(objPos - camPos);
-			dist = (dist < 0.01f) ? 0.01f : dist;
-			float t; XMFLOAT3 hp;
-			float radiusWorld = ComputeGizmoRadiusWorld(dist, Camera_GetFov(), Direct3D_GetBackBufferHeight(), 0);
-			if (RayVsRing_Plane(ray, chosingObj->Position, {1,0,0}, radiusWorld, 0.05f, t, &hp))
-			{
-				isPlacingOnGridX = true;
-			}
-		}
 
 
 
@@ -293,7 +293,7 @@ void Map_Update(double elapsed_time)
 					}
 				}
 			}
-			else if(isPlacingOnY)
+			else if (isPlacingOnY)
 			{
 				if (chosingObj != nullptr)
 				{
@@ -351,18 +351,130 @@ void Map_Update(double elapsed_time)
 					}
 				}
 			}
-			
-		}
-			if (MouseLogger_IsRelease(1))
-			{
-				isPlacingOnX = false;
-				isPlacingOnY = false;
-				isPlacingOnZ = false;
-			}
-	}
 
-	Map_MoveObjectUpdate();
+		}
+		if (MouseLogger_IsRelease(1))
+		{
+			isPlacingOnX = false;
+			isPlacingOnY = false;
+			isPlacingOnZ = false;
+		}
+	}
+	if (isRotatingObject)
+	{
+
+
+		if (MouseLogger_IsTrigger(0))
+		{
+			int i = PickObjectIndex(Get_Mouse_Info().x, Get_Mouse_Info().y);
+			if (i == -1)
+			{
+				chosingObj = nullptr;
+			}
+			else
+			{
+				chosingObj = &g_MapObjects[i];
+			}
+		}
+		if (chosingObj != nullptr)
+		{
+			XMVECTOR camPos = Load3(Camera_GetCameraPos());
+			XMVECTOR objPos = Load3(chosingObj->Position);
+
+			float dist = Length3(objPos - camPos);
+			dist = (dist < 0.01f) ? 0.01f : dist;
+			float t; XMFLOAT3 hp;
+			float radiusWorld = ComputeGizmoRadiusWorld(dist, Camera_GetFov(), Direct3D_GetBackBufferHeight(), 80);
+			isPlacingOnGridX = RayVsRing_Plane(ray, chosingObj->Position, { 0,1,0 }, radiusWorld, 0.2f, t, &hp);
+			isPlacingOnGridY = RayVsRing_Plane(ray, chosingObj->Position, { 1,0,0 }, radiusWorld, 0.2f, t, &hp);
+			isPlacingOnGridZ = RayVsRing_Plane(ray, chosingObj->Position, { 0,0,1 }, radiusWorld, 0.2f, t, &hp);
+
+		}
+		auto WrapPi = [](float a)
+			{
+				// 把角度差包到 [-pi, pi]，避免拖過 180 度時跳一下
+			/*	const float PI = 3.14159265358979323846f;
+				while (a > PI) a -= 2.0f * PI;
+				while (a < -PI) a += 2.0f * PI;*/
+				return a;
+			};
+
+		// 你自己決定「每像素幾度」或「每像素幾弧度」
+		const float DEG_PER_PIXEL = -2.5f;              // 1px = 0.25度（自己調）
+		const float RAD_PER_PIXEL = DEG_PER_PIXEL * (3.14159265f / 180.0f);
+
+		static int prevMouse = 0;
+
+		if (MouseLogger_IsTrigger(1) && chosingObj)
+		{
+			if (isPlacingOnGridX)
+			{
+				prevMouse = Get_Mouse_Info().x;
+				rotPlane = RotPlane::X;// 記下按下瞬間的 X
+			}
+			else if (isPlacingOnGridY)
+			{
+				prevMouse = Get_Mouse_Info().y;
+				rotPlane = RotPlane::Y;// 記下按下瞬間的 X
+			}
+			else if (isPlacingOnGridZ)
+			{
+				prevMouse = Get_Mouse_Info().x;
+				rotPlane = RotPlane::Z;// 記下按下瞬間的 X
+			}
+		}
+		if (MouseLogger_IsDown(1) && chosingObj && rotPlane != RotPlane::None)
+		{
+			switch (rotPlane)
+			{
+			case RotPlane::X:   // XZ 平面 → 繞 Y 軸
+			{
+				int mx = Get_Mouse_Info().x;
+				int dxPixel = mx - prevMouse;
+				prevMouse = mx;
+
+				chosingObj->Rotation.y += dxPixel * RAD_PER_PIXEL;
+				break;
+			}
+
+			case RotPlane::Y:   // YZ 平面 → 繞 X 軸
+			{
+				int my = Get_Mouse_Info().y;
+				int dyPixel = my - prevMouse;
+				prevMouse = my;
+
+				chosingObj->Rotation.x += (dyPixel) * RAD_PER_PIXEL;
+				break;
+			}
+
+			case RotPlane::Z:   // XY 平面 → 繞 Z 軸
+			{
+				int mx = Get_Mouse_Info().x;
+				int dxPixel = mx - prevMouse;
+				prevMouse = mx;
+
+				chosingObj->Rotation.z += dxPixel * RAD_PER_PIXEL;
+				break;
+			}
+
+			default:
+				break;
+			}
+		}
+		if (MouseLogger_IsRelease(1))
+		{
+			isPlacingOnGridX = false;
+			isPlacingOnGridY = false;
+			isPlacingOnGridZ = false;
+			rotPlane = RotPlane::None;
+		}
+		
+
+
+		Map_MoveObjectUpdate();
+	}
 }
+
 void Map_MoveObjectUpdate()
 {
 	if (chosingObj != nullptr)
@@ -509,7 +621,7 @@ void Map_Draw()
 	{
 		AABB_Draw_Debug_Size(chosingObj->Collision,0.1f);
 	}
-	if (chosingObj != nullptr)
+	if (chosingObj != nullptr && isMovingObject)
 	{
 		Grid_DebugDrawRay({ x_aabb.min.x,x_point.y   ,x_point.z }, { 1,0,0 }, 2.0f);
 		Grid_DebugDrawRay({ y_point.x   ,x_aabb.min.y,y_point.z }, { 0,1,0 }, 2.0f, { 0,1,0,1 });
@@ -555,8 +667,15 @@ void Map_Draw()
 	dt.SetText(ss.str().c_str());
 	if (isPlacingOnGridX)
 	{
-		dt.SetText("YOUHEI", { 0.0f,0.0f,1.0f,1.0f });
-
+		dt.SetText("X", { 0.0f,1.0f,0.0f,1.0f });
+	}
+	if (isPlacingOnGridY)
+	{
+		dt.SetText("Y", { 1.0f,0.0f,0.0f,1.0f });
+	}
+	if (isPlacingOnGridZ)
+	{
+		dt.SetText("Z", { 0.0f,0.0f,1.0f,1.0f });
 	}
 
 	dt.Draw();
@@ -566,17 +685,14 @@ void Map_Draw()
 
 void Map_DrawRotatingGizmos()
 {
-	for (const MapObject& o : g_MapObjects)
+	if (isRotatingObject)
 	{
-		switch (o.KindId)
-		{		
-		case 4:
-			DrawRotatingGizmo_TranslateRotateStyle(o.Position, { 0,0,1 }, 0);
-			break;
-		default:
-			break;
-		}
+		if (chosingObj != nullptr)
+		{
+			DrawRotatingGizmo_TranslateRotateStyle(chosingObj->Position, { 0,0,1 }, 0);
+		}		
 	}
+	
 }
 
 int Map_GetObjectsCount()

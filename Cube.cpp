@@ -274,9 +274,9 @@ void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot,
 	//XMMATRIX mtxWorld = XMMatrixIdentity();
 	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
 	XMMATRIX mtxRot = XMMatrixRotationRollPitchYaw(
-		XMConvertToRadians(gameobjectRot.x),   // X
-		XMConvertToRadians(gameobjectRot.y),   // Y
-		XMConvertToRadians(gameobjectRot.z)    // Z
+		gameobjectRot.x,   // X
+		gameobjectRot.y,   // Y
+		gameobjectRot.z    // Z
 	);
 	XMMATRIX mtxScale = XMMatrixScaling(
 		gameobjectScale.x,
