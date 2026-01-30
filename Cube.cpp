@@ -293,6 +293,38 @@ void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot,
 	// ポリゴン描画命令発行
 	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
 }
+void Cube_Draw_Q(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT4 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale)
+{
+	Shader3D_Static_Begin();
+	Shader3d_Static_SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// 頂点バッファを描画パイプラインに設定
+	Texture_SetTexture(g_CubeTexTempId);
+	UINT stride = sizeof(Vertex3D);
+	UINT offset = 0;
+	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+
+	// インデックスバッファを描画パイプラインに設定
+	g_pContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//world matrix
+	//XMMATRIX mtxWorld = XMMatrixIdentity();
+	XMMATRIX mtxTrans = XMMatrixTranslation(gameobjectPos.x, gameobjectPos.y, gameobjectPos.z);
+	XMMATRIX mtxRot = XMMatrixRotationQuaternion(XMLoadFloat4(&gameobjectRot));
+	XMMATRIX mtxScale = XMMatrixScaling(
+		gameobjectScale.x,
+		gameobjectScale.y,
+		gameobjectScale.z
+	);
+	XMMATRIX mtxWorld = mtxScale * mtxRot * mtxTrans;
+	Shader3D_Static_SetWorldMatrix(mtxWorld);
+
+
+	// プリミティブトポロジ設定
+	//g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// ポリゴン描画命令発行
+	g_pContext->DrawIndexed(NUM_INDEX, 0, 0); //TO DELETE
+}
 
 void Cube_Draw_Debug(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale)
 {

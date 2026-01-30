@@ -8,7 +8,7 @@ struct MapObject
 {
 	int KindId = -1;
 	DirectX::XMFLOAT3 Position;
-	DirectX::XMFLOAT3 Rotation = {0,0,0};
+	DirectX::XMFLOAT4 Rotation = {0,0,0,1};
 	AABB Collision;
 	bool IsTriggered = false;
 };

@@ -13,6 +13,7 @@ void Cube_Finitialize();
 void Cube_Update(double elapsed_time);
 void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos);
 void Cube_Draw(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale);
+void Cube_Draw_Q(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT4 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale);
 void Cube_Draw_Debug(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale);
 AABB Cube_GetAABB(const DirectX::XMFLOAT3& position);
 void AABB_Draw_Debug(const AABB& aabb);

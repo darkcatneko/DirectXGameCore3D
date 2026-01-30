@@ -54,26 +54,26 @@ bool isPlacingOnGridZ = false;
 
 static MapObject g_MapObjects[g_MapObjectCount]
 {
-	{1,{ 0.0f,10.0f, 0.0f},{0,0,0}},
-	{1,{ 1.0f,10.0f, 0.0f},{0,0,0}},
-	{1,{-1.0f,10.0f, 0.0f},{0,0,0}},
-	{1,{ 0.0f,10.0f, 1.0f},{0,0,0}},
-	{1,{ 1.0f,10.0f, 1.0f},{0,0,0}},
-	{1,{-1.0f,10.0f, 1.0f},{0,0,0}},
-	{1,{ 0.0f,10.0f, 2.0f},{0,0,0}},
-	{1,{ 1.0f,10.0f, 2.0f},{0,0,0}},
-	{1,{-1.0f,10.0f, 2.0f},{0,0,0}},
-	{1,{ 0.0f+5.0f,5.0f, 0.0f},{0,0,0}},
-	{1,{ 1.0f+5.0f,5.0f, 0.0f},{0,0,0}},
-	{1,{-1.0f+5.0f,5.0f, 0.0f},{0,0,0}},
-	{1,{ 0.0f+5.0f,5.0f, 1.0f},{0,0,0}},
-	{1,{ 1.0f+5.0f,5.0f, 1.0f},{0,0,0}},
-	{1,{-1.0f+5.0f,5.0f, 1.0f},{0,0,0}},
-	{1,{ 0.0f+5.0f,5.0f, 2.0f},{0,0,0}},
-	{1,{ 1.0f+5.0f,5.0f, 2.0f},{0,0,0}},
-	{1,{-1.0f+5.0f,5.0f, 2.0f},{0,0,0}},
-	{2,{-1.0f,11.5f, 2.0f},{0,0,0}},
-	{2,{-2.0f,12.5f,-1.0f},{0,0,0}},
+	{1,{ 0.0f,10.0f, 0.0f},{0,0,0,1}},
+	{1,{ 1.0f,10.0f, 0.0f},{0,0,0,1}},
+	{1,{-1.0f,10.0f, 0.0f},{0,0,0,1}},
+	{1,{ 0.0f,10.0f, 1.0f},{0,0,0,1}},
+	{1,{ 1.0f,10.0f, 1.0f},{0,0,0,1}},
+	{1,{-1.0f,10.0f, 1.0f},{0,0,0,1}},
+	{1,{ 0.0f,10.0f, 2.0f},{0,0,0,1}},
+	{1,{ 1.0f,10.0f, 2.0f},{0,0,0,1}},
+	{1,{-1.0f,10.0f, 2.0f},{0,0,0,1}},
+	{1,{ 0.0f+5.0f,5.0f, 0.0f},{0,0,0,1}},
+	{1,{ 1.0f+5.0f,5.0f, 0.0f},{0,0,0,1}},
+	{1,{-1.0f+5.0f,5.0f, 0.0f},{0,0,0,1}},
+	{1,{ 0.0f+5.0f,5.0f, 1.0f},{0,0,0,1}},
+	{1,{ 1.0f+5.0f,5.0f, 1.0f},{0,0,0,1}},
+	{1,{-1.0f+5.0f,5.0f, 1.0f},{0,0,0,1}},
+	{1,{ 0.0f+5.0f,5.0f, 2.0f},{0,0,0,1}},
+	{1,{ 1.0f+5.0f,5.0f, 2.0f},{0,0,0,1}},
+	{1,{-1.0f+5.0f,5.0f, 2.0f},{0,0,0,1}},
+	{2,{-1.0f,11.5f, 2.0f},{0,0,0,1}},
+	{2,{-2.0f,12.5f,-1.0f},{0,0,0,1}},
 };
 
 static int mapIconTexId = 0;
@@ -403,63 +403,62 @@ void Map_Update(double elapsed_time)
 		const float DEG_PER_PIXEL = -2.5f;              // 1px = 0.25度（自己調）
 		const float RAD_PER_PIXEL = DEG_PER_PIXEL * (3.14159265f / 180.0f);
 
-		static int prevMouse = 0;
+		// 成員/靜態
+		static int startMouse = 0;
+		static RotPlane rotPlane = RotPlane::None;
+		static DirectX::XMFLOAT4 startQ{};
+		static DirectX::XMFLOAT3 axisLocalStart{};
 
 		if (MouseLogger_IsTrigger(1) && chosingObj)
 		{
-			if (isPlacingOnGridX)
+			rotPlane = RotPlane::None;
+
+			// 注意：Get_Mouse_Info().x / y 如果是 float，這裡改成 int 取整
+			int mx = (int)Get_Mouse_Info().x;
+			int my = (int)Get_Mouse_Info().y;
+
+			if (isPlacingOnGridX) { startMouse = mx; rotPlane = RotPlane::X; }
+			else if (isPlacingOnGridY) { startMouse = my; rotPlane = RotPlane::Y; }
+			else if (isPlacingOnGridZ) { startMouse = mx; rotPlane = RotPlane::Z; }
+
+			if (rotPlane != RotPlane::None)
 			{
-				prevMouse = Get_Mouse_Info().x;
-				rotPlane = RotPlane::X;// 記下按下瞬間的 X
-			}
-			else if (isPlacingOnGridY)
-			{
-				prevMouse = Get_Mouse_Info().y;
-				rotPlane = RotPlane::Y;// 記下按下瞬間的 X
-			}
-			else if (isPlacingOnGridZ)
-			{
-				prevMouse = Get_Mouse_Info().x;
-				rotPlane = RotPlane::Z;// 記下按下瞬間的 X
+				startQ = chosingObj->Rotation;
+				XMVECTOR qS = XMLoadFloat4(&startQ);
+
+				XMVECTOR axisWorld;
+				switch (rotPlane)
+				{
+				case RotPlane::X: axisWorld = XMVectorSet(0, 1, 0, 0); break;
+				case RotPlane::Y: axisWorld = XMVectorSet(1, 0, 0, 0); break;
+				case RotPlane::Z: axisWorld = XMVectorSet(0, 0, 1, 0); break;
+				default: axisWorld = XMVectorSet(1, 0, 0, 0); break;
+				}
+
+				// world -> local (用按下瞬間 startQ)
+				XMVECTOR axisLocal = XMVector3Rotate(axisWorld, XMQuaternionInverse(qS));
+				axisLocal = XMVector3Normalize(axisLocal);
+				XMStoreFloat3(&axisLocalStart, axisLocal);
 			}
 		}
+
 		if (MouseLogger_IsDown(1) && chosingObj && rotPlane != RotPlane::None)
 		{
-			switch (rotPlane)
-			{
-			case RotPlane::X:   // XZ 平面 → 繞 Y 軸
-			{
-				int mx = Get_Mouse_Info().x;
-				int dxPixel = mx - prevMouse;
-				prevMouse = mx;
+			int cur = (rotPlane == RotPlane::Y) ? (int)Get_Mouse_Info().y : (int)Get_Mouse_Info().x;
 
-				chosingObj->Rotation.y += dxPixel * RAD_PER_PIXEL;
-				break;
-			}
+			int deltaPxTotal = cur - startMouse;
+			float delta = (float)deltaPxTotal * RAD_PER_PIXEL;
 
-			case RotPlane::Y:   // YZ 平面 → 繞 X 軸
-			{
-				int my = Get_Mouse_Info().y;
-				int dyPixel = my - prevMouse;
-				prevMouse = my;
+			XMVECTOR qS = XMLoadFloat4(&startQ);
+			XMVECTOR axisLocal = XMLoadFloat3(&axisLocalStart);
 
-				chosingObj->Rotation.x += (dyPixel) * RAD_PER_PIXEL;
-				break;
-			}
+			XMVECTOR qDeltaLocal = XMQuaternionRotationAxis(axisLocal, delta);
 
-			case RotPlane::Z:   // XY 平面 → 繞 Z 軸
-			{
-				int mx = Get_Mouse_Info().x;
-				int dxPixel = mx - prevMouse;
-				prevMouse = mx;
+			// local 後乘
+			XMVECTOR qNew = XMQuaternionMultiply(qDeltaLocal, qS);
+			qNew = XMQuaternionNormalize(qNew);
 
-				chosingObj->Rotation.z += dxPixel * RAD_PER_PIXEL;
-				break;
-			}
-
-			default:
-				break;
-			}
+			XMStoreFloat4(&chosingObj->Rotation, qNew);
 		}
 		if (MouseLogger_IsRelease(1))
 		{
@@ -471,8 +470,8 @@ void Map_Update(double elapsed_time)
 		
 
 
-		Map_MoveObjectUpdate();
 	}
+		Map_MoveObjectUpdate();
 }
 
 void Map_MoveObjectUpdate()
@@ -590,14 +589,14 @@ void Map_Draw()
 		switch (o.KindId)
 		{
 		case 1:
-			Cube_Draw(o.Position, o.Rotation, {1,1,1});
+			Cube_Draw_Q(o.Position, o.Rotation, {1,1,1});
 			break;
 		case 2:
-			Model_Static_Draw(CoinModelTexId,new GameObject(o.Position,o.Rotation));
+			Model_Static_Draw_Q(CoinModelTexId,new GameObject(o.Position,o.Rotation));
 			AABB_Draw_Debug(o.Collision);
 			break;
 		case 3:
-			Model_Static_Draw(MushroomTexId, new GameObject(o.Position, o.Rotation));
+			Model_Static_Draw_Q(MushroomTexId, new GameObject(o.Position, o.Rotation));
 			for (size_t i = 0; i < MushroomTexId->colliders.size(); i++)
 			{
 				DrawTriMesh_Gizmo(
@@ -606,11 +605,11 @@ void Map_Draw()
 					{ 1,1,0,1 });
 			}
 		case 4:
-			Model_Static_Draw(Grass3X3TexId, new GameObject(o.Position, o.Rotation));
+			Model_Static_Draw_Q(Grass3X3TexId, new GameObject(o.Position, o.Rotation));
 			AABB_Draw_Debug(o.Collision);			
 			break;
 		case 5:
-			Model_Static_Draw(GateTexId, new GameObject(o.Position, {0,XMConvertToRadians(-90),0}));
+			Model_Static_Draw_Q(GateTexId, new GameObject(o.Position, {0,XMConvertToRadians(-90),0}));
 			AABB_Draw_Debug(o.Collision);
 			break;
 		default:
