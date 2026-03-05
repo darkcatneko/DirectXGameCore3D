@@ -31,6 +31,7 @@
 #include "circle_shadow.h"
 #include "NekoTool.h"
 #include "GameUI.h"
+#include "Particle.h"
 static Scene3D g_SceneEnum = Scene3D::SCENE_INIT;
 static Scene3D g_SceneNextEnum = Scene3D::SCENE_INIT;
 
@@ -41,6 +42,13 @@ static XMFLOAT3 g_cubeVelocity;
 //Test MODEL
 static MODEL* g_pModelTest = nullptr;
 
+static Emitter* gEmitter = nullptr;
+Particle proto(
+	0.0f,                           // texId
+	DirectX::XMFLOAT3(0, 0, 0),        // pos（proto 這裡不重要）
+	DirectX::XMFLOAT3(0, 0, 0),        // vel（proto 這裡也不重要，因為 emit 會給 random vel）
+	1.0f                            // 粒子生命時間
+);
 
 static int texid;
 void LightRendering();
@@ -82,8 +90,13 @@ void Scene3D_Initialize(HWND& hWnd)
 		LightCamera_Initialize(GetPlayerFront(), {0,10,-5});
 		GameUI_Initialize();
 		//g_pModelTest = ModelLoad("KIRBY.fbx",0.1f,false);
-		texid = Texture_Load(L"Grass.png");
+		texid = Texture_Load(L"circle_shadow.png");
 		CircleShadow_Initialize();
+
+		
+		proto.texId = Texture_Load(L"circle_shadow.png");
+		 gEmitter = new Emitter(&proto, DirectX::XMFLOAT3(0, 1, 0), 9999.0f, 200);
+		 
 		break;
 	default:
 		break;
@@ -106,6 +119,11 @@ void Scene3D_Finalize()
 
 void Scene3D_Update(double time)
 {
+	if (KeyLogger_IsTrigger(KK_SPACE))
+	{
+		gEmitter->emit(200);
+	}
+	gEmitter->update(time);
 	MouseRenderer_Update(time);
 
 	Camera3D_Update(time);
@@ -133,6 +151,7 @@ void Scene3D_Update(double time)
 
 void Scene3D_Draw()
 {
+	
 	LightRendering();
 	Direct3D_SetBackBuffer();
 	Direct3D_ClearBackBuffer();
@@ -182,7 +201,7 @@ void Scene3D_Draw()
 	Light_SetSpecularWorld({ 0.1f,0.1f,0.1f,1.0f }, 50.0f, Camera_GetCameraPos());
 	Bullet3D_Draw();
 	Map_Draw();
-	Billboard_Draw(texid, g_meshPosition, 3, 3);
+	//Billboard_Draw(texid, g_meshPosition, 3, 3);
 	MouseRenderer_Draw();
 	GameUI_Draw();
 	CircleShadow_Draw(GetPlayerPosition());
@@ -191,6 +210,7 @@ void Scene3D_Draw()
 	Direct3D_SetDepthEnable(false);
 	Sprite_Draw_N(0, 0, 128.0f, 128.0f, 1.0f);
 	Map_DrawRotatingGizmos();
+	gEmitter->render();
 }
 
 void Scene3D_Refresh(HWND& hWnd)
