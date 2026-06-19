@@ -5,6 +5,8 @@ using namespace DirectX;
 
 static XMFLOAT3 g_LightPosition = {};
 static XMFLOAT3 g_LightFront = {0.0f,1.0f,0.0f};
+static XMFLOAT4X4 g_LightViewMatrix = {};
+static XMFLOAT4X4 g_LightProjectionMatrix = {};
 
 void LightCamera_Initialize(const DirectX::XMFLOAT3 world_directional, const DirectX::XMFLOAT3 position)
 {
@@ -28,18 +30,20 @@ void LightCamera_SetFront(DirectX::XMFLOAT3 front)
 
 const DirectX::XMFLOAT4X4& LightCamera_GetViewMatrix()
 {
-	XMFLOAT4X4 mtxView{};
-	XMMATRIX view = XMMatrixLookToLH(XMLoadFloat3(&g_LightPosition), XMVECTOR{ 0.0f,-1.0f,0.0f }, XMLoadFloat3(&g_LightFront));
-	XMStoreFloat4x4(&mtxView, view);
-	return mtxView;
+	XMVECTOR up = XMLoadFloat3(&g_LightFront);
+	if (XMVectorGetX(XMVector3LengthSq(up)) < 0.0001f)
+	{
+		up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	}
+	XMMATRIX view = XMMatrixLookToLH(XMLoadFloat3(&g_LightPosition), XMVECTOR{ 0.0f,-1.0f,0.0f }, up);
+	XMStoreFloat4x4(&g_LightViewMatrix, view);
+	return g_LightViewMatrix;
 }
 
 const DirectX::XMFLOAT4X4& LightCamera_GetProjectionMatrix()
 {
-	XMFLOAT4X4 mtxProj{};
-
-	float value = 8;
+	float value = 24;
 	XMMATRIX proj = XMMatrixOrthographicOffCenterLH(-value, value, -value, value, 0.1f, 1000.0f);
-	XMStoreFloat4x4(&mtxProj, proj);
-	return mtxProj;
+	XMStoreFloat4x4(&g_LightProjectionMatrix, proj);
+	return g_LightProjectionMatrix;
 }

@@ -40,6 +40,11 @@ void Direct3D_SetOffScreenTexture(int slot);
 void Direct3D_SetOffScreen();
 void Direct3D_ClearOffscreen();
 
+void Direct3D_SetShadowMap();
+void Direct3D_ClearShadowMap();
+void Direct3D_SetShadowMapTexture(int slot);
+bool Direct3D_IsRenderingShadowMap();
+
 void Direct3D_SetBackBuffer();
 void Direct3D_ClearBackBuffer();
 #endif // DIRECT3D_H

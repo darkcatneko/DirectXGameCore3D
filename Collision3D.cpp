@@ -183,6 +183,11 @@ bool RayVsRing_Plane(
 
 void Debug_DrawRay(const Ray& ray)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	XMFLOAT3 start = ray.origin;
 	XMFLOAT3 end =
 	{

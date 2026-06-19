@@ -13,7 +13,9 @@ static ID3D11InputLayout* g_pInputLayout = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer2 = nullptr;
+static ID3D11Buffer* g_pVSConstantBuffer3 = nullptr;
 static ID3D11Buffer* g_pPSConstantBuffer0 = nullptr;
+static ID3D11Buffer* g_pPSConstantBuffer1 = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
@@ -94,6 +96,7 @@ bool Shader3D_Static_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer0);
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer1);
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer2);
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pVSConstantBuffer3);
 
 	// 事前コンパイル済みピクセルシェーダーの読み込み
 	std::ifstream ifs_ps("shader_pixel_static.cso", std::ios::binary);
@@ -123,6 +126,8 @@ bool Shader3D_Static_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pCon
 	buffer_desc.ByteWidth = sizeof(XMFLOAT4); // バッファのサイズ
 
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer0);
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer1);
+	Shader3D_Static_SetShadowPass(false);
 
 	return true;
 }
@@ -133,7 +138,9 @@ void Shader3D_Static_Finalize()
 	SAFE_RELEASE(g_pVSConstantBuffer0);
 	SAFE_RELEASE(g_pVSConstantBuffer1);
 	SAFE_RELEASE(g_pVSConstantBuffer2);
+	SAFE_RELEASE(g_pVSConstantBuffer3);
 	SAFE_RELEASE(g_pPSConstantBuffer0);
+	SAFE_RELEASE(g_pPSConstantBuffer1);
 	SAFE_RELEASE(g_pInputLayout);
 	SAFE_RELEASE(g_pVertexShader);
 }
@@ -148,6 +155,20 @@ void Shader3D_Static_SetProjectionMatrix(const DirectX::XMMATRIX& matrix)
 
 	// 定数バッファに行列をセット
 	g_pContext->UpdateSubresource(g_pVSConstantBuffer2, 0, nullptr, &transpose, 0, 0);
+}
+
+
+void Shader3D_Static_SetLightViewProjectionMatrix(const DirectX::XMMATRIX& matrix)
+{
+	XMFLOAT4X4 transpose;
+	XMStoreFloat4x4(&transpose, XMMatrixTranspose(matrix));
+	g_pContext->UpdateSubresource(g_pVSConstantBuffer3, 0, nullptr, &transpose, 0, 0);
+}
+
+void Shader3D_Static_SetShadowPass(bool enabled)
+{
+	XMFLOAT4 settings = { enabled ? 1.0f : 0.0f, 0.45f, 0.0025f, 0.0f };
+	g_pContext->UpdateSubresource(g_pPSConstantBuffer1, 0, nullptr, &settings, 0, 0);
 }
 
 void Shader3d_Static_SetColor(const DirectX::XMFLOAT4 color)
@@ -193,7 +214,9 @@ void Shader3D_Static_Begin()
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer0);
 	g_pContext->VSSetConstantBuffers(1, 1, &g_pVSConstantBuffer1);
 	g_pContext->VSSetConstantBuffers(3, 1, &g_pVSConstantBuffer2);
+	g_pContext->VSSetConstantBuffers(5, 1, &g_pVSConstantBuffer3);
 
 	g_pContext->PSSetConstantBuffers(0, 1, &g_pPSConstantBuffer0);
+	g_pContext->PSSetConstantBuffers(5, 1, &g_pPSConstantBuffer1);
 	Sampler_SetFilterAnisotropic();
 }

@@ -145,6 +145,11 @@ void Grid_DebugDrawRay(
 	XMFLOAT4 color
 )
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	Vertex3D v[2];
 
 	v[0].position = origin;
@@ -182,6 +187,11 @@ void Grid_DebugDrawRay(
 
 void Grid_DebugDrawSphere(const Sphere& sphere, const XMFLOAT4& color)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	Vertex3D vertices[SPHERE_VERTEX_COUNT];
 	int index = 0;
 
@@ -262,6 +272,11 @@ void DrawTriMesh_Gizmo(
 	const DirectX::XMFLOAT3& world,
 	const DirectX::XMFLOAT4& color)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	using namespace DirectX;
 
 	for (size_t i = 0; i < col.indices.size(); i += 3)
@@ -303,6 +318,11 @@ void Debug_DrawLine(
 	XMFLOAT4 color
 )
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	Vertex3D v[2];
 
 	v[0].position = origin;
@@ -335,6 +355,11 @@ void Debug_DrawLine(
 
 void DebugDrawSector(const Sector& sector, const XMFLOAT4& color, int arcSegments)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	XMFLOAT3 f = sector.forward;
 	if (sector.ignoreY) f = NormalizeXZ(f);
 
@@ -469,6 +494,11 @@ void DrawRotatingGizmo_TranslateRotateStyle(
 	float timeSeconds,
 	float screenRadiusPx)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	XMVECTOR camPos = Load3(Camera_GetCameraPos());
 	XMVECTOR objPos = Load3(objectPos);
 

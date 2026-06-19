@@ -31,6 +31,13 @@ cbuffer PS_CONSTANT_BUFFER : register(b4)
     int count;
     float3 point_light_dummy;
 };
+cbuffer SHADOW_CONSTANT_BUFFER : register(b5)
+{
+    float shadowPass;
+    float shadowStrength;
+    float shadowBias;
+    float shadowPadding;
+};
 struct PS_IN
 {
     float4 posH : SV_Position;
@@ -38,15 +45,37 @@ struct PS_IN
     float4 normalW : NORMAL0;
     float4 color : COLOR0;
     float2 uv : TEXCOORD0;
+    float4 lightPosH : TEXCOORD1;
 };
 
 Texture2D tex0 : register(t0);
 Texture2D tex1 : register(t1);
+Texture2D shadowMap : register(t7);
 
 SamplerState samp;
 
+float CalcShadow(float4 lightPosH)
+{
+    float3 proj = lightPosH.xyz / lightPosH.w;
+    float2 shadowUV = float2(proj.x * 0.5f + 0.5f, -proj.y * 0.5f + 0.5f);
+    float shadow = 1.0f;
+
+    if (shadowUV.x >= 0.0f && shadowUV.x <= 1.0f && shadowUV.y >= 0.0f && shadowUV.y <= 1.0f && proj.z >= 0.0f && proj.z <= 1.0f)
+    {
+        float closestDepth = shadowMap.Sample(samp, shadowUV).r;
+        shadow = (closestDepth + shadowBias < proj.z) ? shadowStrength : 1.0f;
+    }
+
+    return shadow;
+}
+
 float4 main(PS_IN pi) : SV_TARGET
 {    
+    if (shadowPass > 0.5f)
+    {
+        return float4(pi.posH.z, pi.posH.z, pi.posH.z, 1.0f);
+    }
+
     //UVâ¡çH
     float2 uv;
     float angle = 3.14159f * 45 / 180.0f;
@@ -80,7 +109,8 @@ float4 main(PS_IN pi) : SV_TARGET
     
     
     //float alpha = tex.Sample(samp, pi.uv).a * pi.color.a * diffuse_color.a;
-    float3 lcolor = ambient + diffuse + specular; 
+    float shadow = CalcShadow(pi.lightPosH);
+    float3 lcolor = ambient + (diffuse + specular) * shadow; 
     
     for (int i = 0; i < count; i++)
     {

@@ -328,6 +328,11 @@ void Cube_Draw_Q(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT4 gameobjectRo
 
 void Cube_Draw_Debug(DirectX::XMFLOAT3 gameobjectPos, DirectX::XMFLOAT3 gameobjectRot, DirectX::XMFLOAT3 gameobjectScale)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	Shader3dUnlit_Begin();
 	Shader3DUnilt_SetColor({ 0.0f, 1.0f, 0.0f, 1.0f });
 	// 頂点バッファを描画パイプラインに設定
@@ -375,6 +380,11 @@ AABB Cube_GetAABB(const DirectX::XMFLOAT3& position)
 
 void AABB_Draw_Debug(const AABB& aabb)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	DirectX::XMFLOAT3 center = aabb.GetCenter();
 	DirectX::XMFLOAT3 size = aabb.GetSize();
 
@@ -384,6 +394,11 @@ void AABB_Draw_Debug(const AABB& aabb)
 }
 void AABB_Draw_Debug_Size(const AABB& aabb,float sizef)
 {
+	if (Direct3D_IsRenderingShadowMap())
+	{
+		return;
+	}
+
 	DirectX::XMFLOAT3 center = aabb.GetCenter();
 	DirectX::XMFLOAT3 size = aabb.GetSize();
 	size.x += sizef;

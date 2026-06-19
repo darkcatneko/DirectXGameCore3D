@@ -29,6 +29,10 @@ cbuffer SKINNING_BUFFER : register(b4)
 {
     float4x4 gBones[128];
 };
+cbuffer LIGHT_VIEW_PROJECTION_BUFFER : register(b5)
+{
+    float4x4 lightViewProjection;
+};
 struct VS_OUT
 {
     float4 posH : SV_Position;
@@ -36,6 +40,7 @@ struct VS_OUT
     float4 normalW : NORMAL0;
     float4 color : COLOR0;
     float2 uv : TEXCOORD0;
+    float4 lightPosH : TEXCOORD1;
 };
 struct VS_IN
 {
@@ -83,6 +88,7 @@ VS_OUT main(VS_IN vi)
 
     // posW
     vo.posW = mul(skinnedPos, world);
+    vo.lightPosH = mul(vo.posW, lightViewProjection);
 
     // 法線をワールド空間へ
     vo.normalW = normalize(mul(skinnedNormal, world));

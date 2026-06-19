@@ -52,6 +52,7 @@ Particle proto(
 
 static int texid;
 void LightRendering();
+void SetShadowShaderState(bool shadowPass, const XMMATRIX& lightViewProjection);
 
 void Scene3D_Initialize(HWND& hWnd)
 {
@@ -155,10 +156,14 @@ void Scene3D_Draw()
 	LightRendering();
 	Direct3D_SetBackBuffer();
 	Direct3D_ClearBackBuffer();
+	Direct3D_SetShadowMapTexture(7);
 	XMFLOAT4X4 mtxView = Camera_GetMatrix();
 	XMFLOAT4X4 mtxProj = Camera_GetMatrixPerspective();
 	XMMATRIX view = XMLoadFloat4x4(&mtxView);
 	XMMATRIX proj = XMLoadFloat4x4(&mtxProj);
+	XMMATRIX lightView = XMLoadFloat4x4(&LightCamera_GetViewMatrix());
+	XMMATRIX lightProj = XMLoadFloat4x4(&LightCamera_GetProjectionMatrix());
+	SetShadowShaderState(false, lightView * lightProj);
 
 
 	//カメラに関する行列をシェーダーに設定
@@ -235,8 +240,8 @@ Scene3D GetScene3D()
 
 void LightRendering()
 {
-	Direct3D_SetOffScreen();
-	Direct3D_ClearOffscreen();
+	Direct3D_SetShadowMap();
+	Direct3D_ClearShadowMap();
 
 	XMFLOAT4X4 mtxView = Camera_GetMatrix();
 	XMMATRIX view = XMLoadFloat4x4(&mtxView);
@@ -250,6 +255,7 @@ void LightRendering()
 	XMFLOAT4X4 mtxProj = LightCamera_GetProjectionMatrix();
 	view = XMLoadFloat4x4(&mtxView);
 	proj = XMLoadFloat4x4(&mtxProj);
+	SetShadowShaderState(true, view * proj);
 
 
 	//カメラに関する行列をシェーダーに設定
@@ -268,19 +274,26 @@ void LightRendering()
 	//サンプラー設定
 	Sampler_SetFilterAnisotropic();
 
-	Direct3D_SetDepthEnable(false);
-	//空表示
-	Sky_Draw();
-
 	Direct3D_SetDepthEnable(true);
 	Light_SetAmbient({ 1.0f,1.0f,1.0f });
 	MeshField_Draw(g_meshPosition);
 	Map_Draw();
 	Enemy_Draw();
 	Player3D_Draw();
+	SetShadowShaderState(false, view * proj);
 	//Direct3D_SetBackBuffer();
 	//Direct3D_ClearBackBuffer();
 	//Bullet_Draw();
 
 	//Particle3d_Draw();
+}
+void SetShadowShaderState(bool shadowPass, const XMMATRIX& lightViewProjection)
+{
+	Shader3D_SetLightViewProjectionMatrix(lightViewProjection);
+	Shader3D_Static_SetLightViewProjectionMatrix(lightViewProjection);
+	ShaderField_SetLightViewProjectionMatrix(lightViewProjection);
+
+	Shader3D_SetShadowPass(shadowPass);
+	Shader3D_Static_SetShadowPass(shadowPass);
+	ShaderField_SetShadowPass(shadowPass);
 }
