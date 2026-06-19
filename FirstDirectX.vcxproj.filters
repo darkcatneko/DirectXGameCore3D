@@ -26,6 +26,9 @@
     <Filter Include="ソース ファイル\ClassStructure">
       <UniqueIdentifier>{955043dd-fa7e-4a51-a204-b033d5a88bc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\SlayTheSpire">
+      <UniqueIdentifier>{92e8f3cc-b0b2-4c72-b64a-0841533e4006}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -184,11 +187,8 @@
     <ClCompile Include="Particle.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CreatureClass.cpp">
-      <Filter>ソース ファイル\ClassStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="Buff.cpp">
-      <Filter>ソース ファイル\ClassStructure</Filter>
+    <ClCompile Include="ChessMap.cpp">
+      <Filter>ソース ファイル\SlayTheSpire</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -348,11 +348,8 @@
     <ClInclude Include="Particle.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CreatureClass.h">
-      <Filter>ソース ファイル\ClassStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="Buff.h">
-      <Filter>ソース ファイル\ClassStructure</Filter>
+    <ClInclude Include="ChessMap.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

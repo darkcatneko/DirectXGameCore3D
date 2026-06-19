@@ -48,57 +48,6 @@ struct VS_IN
     float4 weight : BONEWEIGHT; // それぞれの重み
 };
 
-//=============================================================================
-// 頂点シェーダ
-//=============================================================================
-//VS_OUT main(VS_IN vi)
-//{
-//    VS_OUT vo;
-
-//    //---------------------------------------------------------------------
-//    // ★ 1. スキニング：ローカル → ボーン変換後の頂点へ
-//    //---------------------------------------------------------------------
-//    float4 localPos = vi.posL;
-//    float4 localNormal = float4(vi.normalL.xyz, 0);
-
-//    // 頂点位置
-//    float4 skinnedPos = 0;
-//    skinnedPos += mul(localPos, gBones[vi.boneIdx.x]) * vi.weight.x;
-//    skinnedPos += mul(localPos, gBones[vi.boneIdx.y]) * vi.weight.y;
-//    skinnedPos += mul(localPos, gBones[vi.boneIdx.z]) * vi.weight.z;
-//    skinnedPos += mul(localPos, gBones[vi.boneIdx.w]) * vi.weight.w;
-
-//    // 法線（w=0）
-//    float4 skinnedNormal = 0;
-//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.x]) * vi.weight.x;
-//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.y]) * vi.weight.y;
-//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.z]) * vi.weight.z;
-//    skinnedNormal += mul(localNormal, gBones[vi.boneIdx.w]) * vi.weight.w;
-
-//    //---------------------------------------------------------------------
-//    // ★ 2. あなたが使っていた World / View / Projection
-//    //---------------------------------------------------------------------
-//    float4x4 mtxWV = mul(world, view);
-//    float4x4 mtxWVP = mul(mtxWV, projection);
-//    vo.posH = mul(vi.posL, mtxWVP);
-//    //vo.posH = mul(skinnedPos, mtxWVP);
-
-//    // posW
-//    //vo.posW = mul(skinnedPos, world);
-//     //スペキュラ
-//    vo.posW = mul(vi.posL, world);
-    
-//    float4 normalW = mul(float4(vi.normalL.xyz, 0.0f), world);
-//    vo.normalW = normalize(normalW);
-//    // 法線をワールド空間へ
-//    //vo.normalW = normalize(mul(skinnedNormal, world));
-
-//    // 既存処理
-//    vo.color = vi.color;
-//    vo.uv = vi.uv;
-
-//    return vo;
-//}
 
 VS_OUT main(VS_IN vi)
 {
